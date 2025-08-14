@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -217,6 +218,33 @@
             color: #15803d; font-weight: 500;
         }
         .choice-item.correct::before { content: '✔ '; color: #15803d; }
+        /* NEW: Styles for Poetry & Lists */
+        .poetry-line {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 20px;
+            margin: 8px 0;
+        }
+        .shatr {
+            flex-basis: 48%;
+        }
+        html[dir="rtl"] .shatr:first-child { text-align: right; }
+        html[dir="rtl"] .shatr:last-child { text-align: left; }
+        html[dir="ltr"] .shatr:first-child { text-align: left; }
+        html[dir="ltr"] .shatr:last-child { text-align: right; }
+        .preview-list {
+            margin: 0;
+            padding-right: 20px; /* Indentation for RTL */
+            list-style-position: outside;
+        }
+        html[dir="ltr"] .preview-list {
+            padding-right: 0;
+            padding-left: 20px; /* Indentation for LTR */
+        }
+        .preview-list li {
+            margin-bottom: 8px;
+        }
         .stats {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 15px; margin-bottom: 20px;
@@ -788,7 +816,6 @@ type: string
 [ANSWER]
 x=3, y=2
 `;
-                // START OF CHANGE 2
                 const basePromptAr = `
 أنت مُنسّق أسئلة خبير ومساعد أكاديمي دقيق. مهمتك هي تحويل نص غير منظم إلى تنسيق منظم وموحد.
 
@@ -868,7 +895,6 @@ ${rawText}
 
 **Formatted Output:**
 `;
-                // END OF CHANGE 2
                 return isArabic ? basePromptAr : basePromptEn;
             }
             cleanFormattedText(t) {
@@ -1121,9 +1147,11 @@ ${rawText}
                     const tagContent = remainingBlock.substring(start, end).trim();
                     content[currentTag.tag] = tagContent;
                 }
+                let stemText = content.STEM || '';
+                stemText = stemText.replace(/^[\d١٢٣٤٥٦٧٨٩٠]+[.-]?\s*/, '');
                 const part = {
                     type: (partMetadata.type || globalMetadata.type || this.QuestionType.UNKNOWN),
-                    stem: content.STEM || '',
+                    stem: stemText,
                     metadata: partMetadata
                 };
                 this._processTaggedContent(part, content);
@@ -1218,7 +1246,7 @@ ${rawText}
                     part.group2 = [];
                     return part;
                 }
-                part.stem = lines[0].trim();
+                part.stem = lines[0].trim().replace(/^[\d١٢٣٤٥٦٧٨٩٠]+[.-]?\s*/, '');
                 const remainingLines = lines.slice(1);
                 switch(type) {
                     case this.QuestionType.OQ:
@@ -1599,38 +1627,84 @@ ${rawText}
                 this.showMessage(this.language === this.Language.ARABIC ? 'تم مسح كل شيء' : 'Everything cleared', 'success');
                 this.logger.info("All data has been cleared.");
             }
-            
+
+            // START OF CHANGE: Updated function to handle lists, poetry, and other formats.
             processTextForHtml(text, language, questionId, partIndex, fieldType, choiceIndex = -1) {
                 if (!text) return '';
                 const direction = language === this.Language.ARABIC ? ' dir="rtl"' : '';
-                
-                // START OF CHANGE 1
-                // NEW: Replace 4+ dots OR 4+ underscores with a blank span.
-                let processedText = text.replace(/\.{4,}|_{4,}/g, '<span data-node-type="blank-line" data-node-variation="space">&nbsp;</span>');
-                // END OF CHANGE 1
+                const spaceSpan = '<span data-node-type="blank-line" data-node-variation="space">&nbsp;</span>';
 
-                const parts = processedText.split(/(``[\s\S]*?``|`[\s\S]*?`|<span data-node-type="blank-line" data-node-variation="gap"> <\/span>|<span data-node-type="blank-line" data-node-variation="space">&nbsp;<\/span>)/);
-                let finalHtmlContent = "";
-                
-                let mathFieldIndex = 0;
-                for (const part of parts) {
-                    if (!part) continue;
-                    if (part.startsWith('``') && part.endsWith('``')) {
-                        finalHtmlContent += this.createMathField(part.slice(2, -2), language, true, questionId, partIndex, fieldType, choiceIndex, mathFieldIndex++);
-                    } else if (part.startsWith('`') && part.endsWith('`')) {
-                        finalHtmlContent += this.createMathField(part.slice(1, -1), language, false, questionId, partIndex, fieldType, choiceIndex, mathFieldIndex++);
-                    } else if (part.includes('data-node-type="blank-line"')) {
-                        finalHtmlContent += part;
-                    } else {
-                        let textPart = DOMPurify.sanitize(part);
-                        if (language === this.Language.ARABIC) {
-                            textPart = textPart.replace(/"([^"]*)"/g, '«$1»');
+                const processStringContent = (str) => {
+                    if (!str) return '';
+                    const parts = str.split(/(``[\s\S]*?``|`[\s\S]*?`)/);
+                    let content = '';
+                    let mathFieldIndex = 0;
+                    for (const part of parts) {
+                        if (!part) continue;
+                        if (part.startsWith('``') && part.endsWith('``')) {
+                            content += this.createMathField(part.slice(2, -2), language, true, questionId, partIndex, fieldType, choiceIndex, mathFieldIndex++);
+                        } else if (part.startsWith('`') && part.endsWith('`')) {
+                            content += this.createMathField(part.slice(1, -1), language, false, questionId, partIndex, fieldType, choiceIndex, mathFieldIndex++);
+                        } else {
+                            let textPart = DOMPurify.sanitize(part);
+                            if (language === this.Language.ARABIC) {
+                                textPart = textPart.replace(/"([^"]*)"/g, '«$1»');
+                            }
+                            content += `<span style="white-space: pre-wrap;">${textPart}</span>`;
                         }
-                        finalHtmlContent += `<span style="white-space: pre-wrap;">${textPart}</span>`;
                     }
+                    return content;
+                };
+
+                let processedText = text.replace(/\.{4,}|_{4,}|ـ{4,}/g, spaceSpan);
+
+                const lines = processedText.split('\n');
+                let finalHtmlContent = '';
+                let inList = false;
+                const listMarkerRegex = /^\s*(?:[•]|\d+[.-]|[\w\u0621-\u064A][.-])\s+/;
+                const poetrySeparator = /\s*\.{3}\s*|\s*\*{3,}\s*/;
+
+                lines.forEach((line, index) => {
+                    const trimmedLine = line.trim();
+                    if (!trimmedLine) {
+                         if (inList) {
+                            finalHtmlContent += '</ul>';
+                            inList = false;
+                        }
+                        finalHtmlContent += '<br>';
+                        return;
+                    }
+
+                    if (listMarkerRegex.test(trimmedLine)) {
+                        if (!inList) {
+                            finalHtmlContent += `<ul class="preview-list">`;
+                            inList = true;
+                        }
+                        const itemContent = trimmedLine.replace(listMarkerRegex, '');
+                        finalHtmlContent += `<li>${processStringContent(itemContent)}</li>`;
+                    } else {
+                        if (inList) {
+                            finalHtmlContent += '</ul>';
+                            inList = false;
+                        }
+                        
+                        const poetryParts = line.split(poetrySeparator);
+                        if (poetryParts.length === 2 && poetryParts[0].trim() && poetryParts[1].trim()) {
+                            finalHtmlContent += `<div class="poetry-line"><span class="shatr">${processStringContent(poetryParts[0])}</span><span class="shatr">${processStringContent(poetryParts[1])}</span></div>`;
+                        } else {
+                            if(index > 0 && lines[index-1].trim()) finalHtmlContent += '<br>';
+                            finalHtmlContent += processStringContent(line);
+                        }
+                    }
+                });
+
+                if (inList) {
+                    finalHtmlContent += '</ul>';
                 }
-                return `<p class="LexicalTheme__paragraph"${direction}>${finalHtmlContent}</p>`;
+
+                return `<div class="LexicalTheme__paragraph"${direction}>${finalHtmlContent}</div>`;
             }
+            // END OF CHANGE
             
             createMathField(equation, language, forceEn = false, questionId, partIndex, fieldType, choiceIndex, mathFieldIndex) {
                 const isArabic = language === this.Language.ARABIC && !forceEn;
@@ -2296,4 +2370,3 @@ ${rawText}
     </script>
 </body>
 </html>
-```
