@@ -1,166 +1,306 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>محول الأسئلة الذكي المتطور - النسخة النهائية</title>
+    <!-- Google Fonts: Tajawal -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Handsontable CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.min.css" />
     <style>
+        /* --- NEW: Modern Font & Soothing Colors Palette --- */
+        :root {
+            --font-primary: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --color-bg: #f4f7f9;
+            --color-surface: #ffffff;
+            --color-text-primary: #2d3748;
+            --color-text-secondary: #718096;
+            --color-border: #e2e8f0;
+            --color-primary: #3b82f6; /* Calm Blue */
+            --color-primary-dark: #2563eb;
+            --color-success: #22c55e; /* Calm Green */
+            --color-warning: #f97316; /* Calm Orange */
+            --color-ai: #14b8a6; /* Calm Teal */
+            --color-danger: #ef4444; /* Calm Red */
+            --color-header-bg: #1f2937; /* Dark Slate */
+            --color-header-text: #f9fafb;
+            --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+            --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
         /* --- Basic Setup --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh; padding: 20px; color: #333;
+            font-family: var(--font-primary);
+            background-color: var(--color-bg);
+            min-height: 100vh; padding: 20px;
+            color: var(--color-text-primary);
             display: flex; align-items: center; justify-content: center;
         }
+
         /* --- Main Container --- */
         .container {
             width: 100%; max-width: 1600px; margin: 0 auto;
-            background: rgba(255, 255, 255, 0.98); border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); overflow: hidden;
+            background: var(--color-surface);
+            border-radius: 16px;
+            box-shadow: var(--shadow-medium);
+            overflow: hidden;
+            border: 1px solid var(--color-border);
         }
+
         /* --- Header --- */
         .header {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            color: white; padding: 30px; text-align: center; position: relative; overflow: hidden;
+            background: var(--color-header-bg);
+            color: var(--color-header-text);
+            padding: 30px; text-align: center;
+            border-bottom: 1px solid var(--color-border);
         }
-        .header::before {
-            content: ''; position: absolute; top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: pulse 4s ease-in-out infinite;
+        .header h1 {
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: none;
         }
-        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 0.8; } }
-        .header h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); position: relative; z-index: 1; }
-        .header p { font-size: 1.2em; opacity: 0.9; position: relative; z-index: 1; }
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.8;
+        }
         .ai-badge {
-            position: absolute; top: 15px; right: 15px; background: rgba(255, 255, 255, 0.2);
-            padding: 8px 15px; border-radius: 20px; font-size: 0.9em; backdrop-filter: blur(10px);
+            position: absolute; top: 15px; right: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 14px; border-radius: 20px;
+            font-size: 0.9em; font-weight: 500;
         }
+
         /* --- Content Layout --- */
         .content {
-            padding: 40px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px;
+            padding: 30px; display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
         }
         .panel {
-            background: #f8fafc; border-radius: 15px; padding: 25px; border: 2px solid #e2e8f0;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; display: flex; flex-direction: column;
+            background: var(--color-surface);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-soft);
+            transition: all 0.3s ease;
+            display: flex; flex-direction: column;
         }
-        .panel:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); }
-        .panel h3 { color: #4f46e5; margin-bottom: 20px; font-size: 1.3em; display: flex; align-items: center; gap: 10px; }
+        .panel:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-medium);
+        }
+        .panel h3 {
+            color: var(--color-text-primary);
+            margin-bottom: 20px; font-size: 1.25em; font-weight: 700;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        /* --- Inputs and Buttons --- */
         .question-type-selector {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px; margin-bottom: 20px;
         }
-        .q-type-btn { padding: 10px; border: 2px solid #e2e8f0; border-radius: 10px; background-color: #fff; cursor: pointer; transition: all 0.2s ease-in-out; font-weight: 600; color: #475569; text-align: center; }
-        .q-type-btn:hover { background-color: #f1f5f9; border-color: #cbd5e1; }
-        .q-type-btn.active { background-color: #e0e7ff; border-color: #4f46e5; color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .q-type-btn {
+            padding: 10px; border: 1px solid var(--color-border);
+            border-radius: 8px; background-color: var(--color-surface);
+            cursor: pointer; transition: all 0.2s ease-in-out;
+            font-weight: 500; color: var(--color-text-secondary); text-align: center;
+        }
+        .q-type-btn:hover {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+            color: var(--color-text-primary);
+        }
+        .q-type-btn.active {
+            background-color: #eff6ff;
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            font-weight: 700;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
         .input-section textarea, .edit-textarea {
-            width: 100%; min-height: 250px; padding: 20px; border: 2px solid #e5e7eb; border-radius: 15px;
-            font-size: 14px; line-height: 1.6; resize: vertical; transition: all 0.3s ease;
+            width: 100%; min-height: 250px; padding: 15px;
+            border: 1px solid var(--color-border);
+            border-radius: 8px; font-size: 14px; line-height: 1.7;
+            resize: vertical; transition: all 0.3s ease;
             background: white; font-family: 'Courier New', monospace; margin-bottom: 10px;
         }
-        .input-section textarea:focus, .edit-textarea:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-        .api-key-section { margin-top: 15px; }
-        .api-key-section input {
-            width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; transition: all 0.3s ease;
+        .input-section textarea:focus, .edit-textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
-        .api-key-section input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1); }
+        .api-key-section input {
+            width: 100%; padding: 12px;
+            border: 1px solid var(--color-border);
+            border-radius: 8px; font-size: 14px; transition: all 0.3s ease;
+        }
+        .api-key-section input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
         .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
         .controls .btn { flex-grow: 1; }
         .btn {
-            padding: 15px 20px; border: none; border-radius: 12px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;
-            text-transform: uppercase; letter-spacing: 1px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 20px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s ease;
+            text-transform: none; letter-spacing: 0;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        .btn:before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s; }
-        .btn:hover:before { left: 100%; }
+        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-soft); }
         .btn:disabled { cursor: not-allowed; opacity: 0.6; }
-        .btn-primary { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; }
-        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3); }
-        .btn-secondary { background: #f3f4f6; color: #374151; border: 2px solid #d1d5db; }
-        .btn-secondary:hover:not(:disabled) { background: #e5e7eb; border-color: #9ca3af; }
-        .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
-        .btn-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
-        .btn-ai { background: linear-gradient(135deg, #ec4899 0%, #d946ef 100%); color: white; }
-        .btn-ai:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(236, 72, 153, 0.3); }
+        .btn-primary { background-color: var(--color-primary); color: white; }
+        .btn-primary:hover:not(:disabled) { background-color: var(--color-primary-dark); }
+        .btn-secondary { background-color: #e2e8f0; color: #475569; }
+        .btn-secondary:hover:not(:disabled) { background-color: #cbd5e1; }
+        .btn-success { background-color: var(--color-success); color: white; }
+        .btn-success:hover:not(:disabled) { background-color: #16a34a; }
+        .btn-warning { background-color: var(--color-warning); color: white; }
+        .btn-warning:hover:not(:disabled) { background-color: #ea580c; }
+        .btn-ai { background-color: var(--color-ai); color: white; }
+        .btn-ai:hover:not(:disabled) { background-color: #0d9488; }
+        
+        /* --- Output and Previews --- */
         .json-output {
-            background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 12px; font-family: 'Courier New', monospace;
-            font-size: 13px; line-height: 1.4; overflow-x: auto; white-space: pre-wrap; max-height: 500px; overflow-y: auto; border: 1px solid #334155; flex-grow: 1; margin-top: 15px;
+            background: #1e293b; color: #e2e8f0; padding: 20px;
+            border-radius: 8px; font-family: 'Courier New', monospace;
+            font-size: 13px; line-height: 1.5; overflow-x: auto;
+            white-space: pre-wrap; max-height: 500px; overflow-y: auto;
+            border: 1px solid #334155; flex-grow: 1; margin-top: 15px;
         }
-        .json-output .key { color: #60a5fa; } .json-output .string { color: #34d399; } .json-output .number { color: #fbbf24; }
-        .json-output .boolean { color: #f87171; } .json-output .null { color: #a78bfa; }
-        .analysis-section { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .json-output .key { color: #93c5fd; } .json-output .string { color: #86efac; }
+        .json-output .number { color: #fcd34d; } .json-output .boolean { color: #fca5a5; }
+        .json-output .null { color: #c4b5fd; }
+        #questionsPreview { flex-grow: 1; overflow-y: auto; max-height: 70vh; }
+        .question-preview {
+            background: white; padding: 20px; border-radius: 12px;
+            margin-bottom: 15px; border: 1px solid var(--color-border);
+            box-shadow: none; animation: fadeIn 0.5s ease; position: relative;
+            transition: box-shadow 0.2s ease;
+        }
+        .question-preview:hover { box-shadow: var(--shadow-soft); }
+        .question-actions {
+            position: absolute; top: 10px; left: 10px; display: none;
+            gap: 8px; z-index: 10;
+        }
+        .question-preview:hover .question-actions { display: flex; }
+        .action-btn {
+            background: rgba(248, 250, 252, 0.7);
+            border: 1px solid var(--color-border); border-radius: 50%;
+            width: 32px; height: 32px; cursor: pointer;
+            font-size: 16px; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s ease; backdrop-filter: blur(2px);
+        }
+        .action-btn:hover {
+            background: var(--color-primary); border-color: var(--color-primary);
+            color: white; transform: scale(1.1);
+        }
+        .question-preview h4, .question-preview .statement-preview {
+            color: var(--color-text-primary); margin-bottom: 15px;
+            font-size: 1.1em; line-height: 1.6;
+        }
+        .part-preview { border-top: 1px solid var(--color-border); margin-top: 15px; padding-top: 15px; }
+        .question-type-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 0.8em; font-weight: 700; margin-bottom: 10px;
+        }
+        .type-mcq, .type-mrq, .type-matching { background: #dbeafe; color: #1e40af; }
+        .type-gapText { background: #dcfce7; color: #166534; }
+        .type-string, .type-oq { background: #ffedd5; color: #9a3412; }
+        .type-frq, .type-frq_ai { background: #fee2e2; color: #991b1b; }
+        .type-input_box { background: #f3e8ff; color: #6b21a8; }
+        .type-unknown { background: #fee2e2; color: #991b1b; }
+
+        .choice-item {
+            padding: 10px 15px; margin: 5px 0; background: #f8fafc;
+            border-radius: 8px; border: 1px solid var(--color-border);
+            transition: all 0.2s ease;
+        }
+        .choice-item:hover {
+            border-color: var(--color-primary); background: #eff6ff;
+        }
+        .choice-item.correct {
+            background: #dcfce7; border-color: var(--color-success);
+            color: #15803d; font-weight: 500;
+        }
+        .choice-item.correct::before { content: '✔ '; color: #15803d; }
+        
+        .stats {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px; margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white; padding: 15px; border-radius: 12px;
+            text-align: center; box-shadow: none; border: 1px solid var(--color-border);
+        }
+        .stat-card h4 {
+            color: var(--color-text-secondary); margin-bottom: 8px;
+            font-size: 0.9em; font-weight: 500;
+        }
+        .stat-card span {
+            font-size: 2em; font-weight: 700; color: var(--color-text-primary);
+        }
+        
+        /* --- Modals and Messages --- */
+        .loading { display: none; text-align: center; padding: 20px; }
+        .spinner {
+            border: 4px solid var(--color-border);
+            border-top: 4px solid var(--color-primary);
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 1s linear infinite; margin: 0 auto 15px;
+        }
+        .btn .spinner { width: 20px; height: 20px; margin: 0; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .message-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .message { padding: 15px 25px; border-radius: 8px; box-shadow: var(--shadow-medium); animation: slideIn 0.5s ease, fadeOut 0.5s ease 3.5s forwards; font-weight: 500; min-width: 300px; text-align: center; position: relative; }
+        .message.error { background: #fef2f2; color: var(--color-danger); border: 1px solid #fecaca; }
+        .message.success { background: #f0fdf4; color: var(--color-success); border: 1px solid #bbf7d0; }
+        .message.warning { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+        
+        #csvModalBg, #aiTemplateModalBg, #subjectTemplateModalBg, #customizeModal {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.3); z-index: 2000; align-items: center; justify-content: center;
+        }
+        #csvModal, #aiTemplateModal, #subjectTemplateModal, #customizeModal > div {
+            background: white; border-radius: 16px; padding: 32px 24px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            position: relative;
+        }
+        #csvModal, #aiTemplateModal, #subjectTemplateModal {
+             max-width: 1200px; width: 95vw; min-height: 600px; min-width: 900px;
+             display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        #customizeModal > div { max-width: 400px; width: 90vw; }
+        #customize-title, #csv-title, #ai-template-title, #subject-template-title {
+            color: var(--color-primary);
+        }
+
+        /* --- Unchanged or Minor Tweaks --- */
+        .header::before { display: none; } /* Removed pulse for calmer UI */
+        .analysis-section { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--color-border); }
         .analysis-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 0.9em; }
         .analysis-item:last-child { border-bottom: none; }
         .confidence-bar { width: 100px; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
         .confidence-fill { height: 100%; background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981); border-radius: 4px; transition: width 0.5s ease-in-out; }
-        #questionsPreview { flex-grow: 1; overflow-y: auto; max-height: 70vh; }
-        .question-preview { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); animation: fadeIn 0.5s ease; position: relative; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .question-actions { position: absolute; top: 10px; left: 10px; display: none; gap: 8px; z-index: 10; }
-        .question-preview:hover .question-actions { display: flex; }
-        .action-btn { background: rgba(249, 250, 251, 0.8); border: 1px solid #d1d5db; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; backdrop-filter: blur(2px); }
-        .action-btn:hover { background: #4f46e5; border-color: #4f46e5; color: white; transform: scale(1.1); }
-        .action-btn:disabled { opacity: 0.4; cursor: not-allowed; background: #e5e7eb; }
-        .question-preview h4, .question-preview .statement-preview { color: #374151; margin-bottom: 10px; font-size: 1.1em; line-height: 1.5; }
-        .part-preview { border-top: 2px dashed #a5b4fc; margin-top: 15px; padding-top: 15px; }
-        .part-preview h5 { color: #4338ca; font-size: 1em; margin-bottom: 8px; }
-        .question-type-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; margin-bottom: 10px; }
-        .type-mcq { background: #dbeafe; color: #1e40af; } .type-mrq { background: #e0e7ff; color: #3730a3; } .type-matching { background: #e0e7ff; color: #3730a3; }
-        .type-gapText { background: #d1fae5; color: #065f46; } .type-string { background: #fef3c7; color: #92400e; }
-        .type-frq { background: #fce7f3; color: #be185d; } .type-frq_ai { background: #fce7f3; color: #be185d; }
-        .type-oq { background: #fef9c3; color: #854d0e; } .type-input_box { background: #f3e8ff; color: #6b21a8; } .type-unknown { background: #fee2e2; color: #991b1b; }
-        .choice-item { padding: 8px 15px; margin: 5px 0; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer; transition: all 0.2s ease; }
-        .choice-item:hover { background: #f3f4f6; border-color: #4f46e5; }
-        .choice-item.correct { background: #dcfce7; border-color: #16a34a; color: #15803d; font-weight: bold; }
-        .choice-item.correct::before { content: '✔ '; color: #15803d; }
         .matching-preview { display: flex; gap: 20px; }
         .matching-column { flex: 1; }
-        .matching-item { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
+        .matching-item { background: #f8fafc; border: 1px solid var(--color-border); padding: 10px; border-radius: 8px; margin-bottom: 8px; }
         .gapped-text-answers { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; }
-        .gapped-text-answers strong { color: #4f46e5; }
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05); border: 1px solid #e5e7eb; transition: all 0.3s ease; }
-        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08); }
-        .stat-card h4 { color: #4f46e5; margin-bottom: 10px; font-size: 0.9em; }
-        .stat-card span { font-size: 2em; font-weight: bold; color: #1f2937; }
-        .loading { display: none; text-align: center; padding: 20px; }
-        .spinner { border: 4px solid #f3f4f6; border-top: 4px solid #4f46e5; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px; }
-        .btn .spinner { width: 20px; height: 20px; margin: 0; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .message-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .message { padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); animation: slideIn 0.5s ease, fadeOut 0.5s ease 3.5s forwards; font-weight: 500; min-width: 300px; text-align: center; position: relative; }
-        .message.error { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
-        .message.success { background: #dcfce7; color: #065f46; border: 1px solid #a7f3d0; }
-        .message.warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .gapped-text-answers strong { color: var(--color-primary); }
+        math-field { border: 1px solid #ddd; padding: 2px 5px; border-radius: 4px; font-size: 1.1em; display: inline-block; background: #f9f9f9; min-width: 20px; vertical-align: -0.25em; }
+        math-field:focus-within { background-color: #eff6ff; box-shadow: 0 0 0 2px var(--color-primary); outline: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .message .close-x { position: absolute; top: 6px; left: 8px; cursor: pointer; font-weight: bold; opacity: .6; }
         @keyframes slideIn { from { transform: translateY(-50px) translateX(-50%); opacity: 0; } to { transform: translateY(0) translateX(-50%); opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-20px) translateX(-50%); } }
-        #csvModalBg, #aiTemplateModalBg, #subjectTemplateModalBg {
-            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.25); z-index: 3000; align-items: center; justify-content: center;
-        }
-        #csvModal, #aiTemplateModal, #subjectTemplateModal {
-            background: white; border-radius: 16px; max-width: 1200px; width: 95vw; padding: 32px 24px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.15); position: relative; min-height: 600px; min-width: 900px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        #csvModal .hot-container, #aiTemplateModal .hot-container { margin-bottom: 18px; width: 100%; }
-        #csvModal .btn, #aiTemplateModal .btn, #subjectTemplateModal .btn { min-width: 120px; }
-        #csvModal .csv-warning { color: #dc2626; font-weight: bold; margin-bottom: 10px; }
-        
-        math-field {
-            border: 1px solid #ddd; padding: 2px 5px; border-radius: 4px; font-size: 1.1em; 
-            display: inline-block; background: #f9f9f9;
-            min-width: 20px;
-            vertical-align: -0.25em;
-        }
-        math-field:focus-within {
-            background-color: #eef2ff;
-            box-shadow: 0 0 0 2px #4f46e5;
-            outline: none;
-        }
-
         @media (max-width: 1200px) { .content { grid-template-columns: 1fr 1fr; } }
         @media (max-width: 768px) {
             body { padding: 10px; } .content { grid-template-columns: 1fr; padding: 20px; }
@@ -241,10 +381,10 @@
         </div>
     </div>
     <!-- Customize Modal -->
-    <div id="customizeModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:2000; align-items:center; justify-content:center;" role="dialog" aria-modal="true" aria-labelledby="customize-title">
-        <div style="background:white; border-radius:16px; max-width:400px; width:90vw; padding:32px 24px; box-shadow:0 8px 32px rgba(0,0,0,0.15); position:relative;">
+    <div id="customizeModal" role="dialog" aria-modal="true" aria-labelledby="customize-title">
+        <div>
             <button id="customize-modal-close-btn" style="position:absolute; top:12px; left:12px; background:none; border:none; font-size:1.5em; cursor:pointer;" aria-label="إغلاق">×</button>
-            <h2 id="customize-title" style="text-align:center; margin-bottom:24px; color:#4f46e5;">تخصيص الإعدادات</h2>
+            <h2 id="customize-title" style="text-align:center; margin-bottom:24px;">تخصيص الإعدادات</h2>
             <div style="margin-bottom:18px;">
                 <label for="categorySelect" style="font-weight:bold;">Category</label>
                 <select id="categorySelect" style="width:100%; padding:10px; border-radius:8px; border:1px solid #e5e7eb; margin-top:6px;">
@@ -286,7 +426,7 @@
     <div id="csvModalBg" role="dialog" aria-modal="true" aria-labelledby="csv-title">
         <div id="csvModal">
             <button id="csv-modal-close-btn" style="position:absolute; top:12px; left:12px; background:none; border:none; font-size:1.5em; cursor:pointer;" aria-label="إغلاق">×</button>
-            <h2 id="csv-title" style="text-align:center; margin-bottom:18px; color:#4f46e5;">CSV Editor</h2>
+            <h2 id="csv-title" style="text-align:center; margin-bottom:18px;">CSV Editor</h2>
             <div class="csv-warning" id="csvWarning" style="display:none;"></div>
             <div id="hotTable" class="hot-container"></div>
             <div style="display:flex; gap:10px; justify-content:center; margin-top:18px;">
@@ -299,7 +439,7 @@
     <div id="aiTemplateModalBg" role="dialog" aria-modal="true" aria-labelledby="ai-template-title">
         <div id="aiTemplateModal">
             <button id="ai-template-modal-close-btn" style="position:absolute; top:12px; left:12px; background:none; border:none; font-size:1.5em; cursor:pointer;" aria-label="إغلاق">×</button>
-            <h2 id="ai-template-title" style="text-align:center; margin-bottom:18px; color:#4f46e5;">Set AI Template IDs</h2>
+            <h2 id="ai-template-title" style="text-align:center; margin-bottom:18px;">Set AI Template IDs</h2>
             <div id="hotAiTemplateTable" class="hot-container"></div>
             <div style="display:flex; gap:10px; justify-content:center; margin-top:18px;">
                 <button id="ai-template-save-btn" class="btn btn-success">💾 حفظ</button>
@@ -311,10 +451,10 @@
     <div id="subjectTemplateModalBg" role="dialog" aria-modal="true" aria-labelledby="subject-template-title">
         <div id="subjectTemplateModal">
             <button id="subject-template-modal-close-btn" style="position:absolute; top:12px; left:12px; background:none; border:none; font-size:1.5em; cursor:pointer;" aria-label="إغلاق">×</button>
-            <h2 id="subject-template-title" style="text-align:center; margin-bottom:18px; color:#4f46e5;">اختر المادة لتطبيق Template ID</h2>
+            <h2 id="subject-template-title" style="text-align:center; margin-bottom:18px;">اختر المادة لتطبيق Template ID</h2>
             <div style="margin-bottom: 20px;">
                 <label for="subjectSelect" style="font-weight:bold; display:block; margin-bottom:10px;">المادة / Subject:</label>
-                <select id="subjectSelect" style="width:100%; padding:12px; border-radius:8px; border:2px solid #e5e7eb; font-size:14px;">
+                <select id="subjectSelect" style="width:100%; padding:12px; border-radius:8px; border:2px solid var(--color-border); font-size:14px;">
                     <option value="">-- اختر المادة --</option>
                     <option value="الأحياء">الأحياء</option>
                     <option value="الرياضيات">الرياضيات</option>
@@ -342,7 +482,7 @@
                     <option value="Sciences">Sciences</option>
                 </select>
             </div>
-            <div id="subjectQuestionsPreview" style="margin-bottom:20px; max-height:300px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; padding:15px; background:#f8fafc;">
+            <div id="subjectQuestionsPreview" style="margin-bottom:20px; max-height:300px; overflow-y:auto; border:1px solid var(--color-border); border-radius:8px; padding:15px; background:#f8fafc;">
                 <p style="text-align:center; color:#6b7280;">ستظهر الأسئلة المؤهلة هنا بعد اختيار المادة</p>
             </div>
             <div style="display:flex; gap:10px; justify-content:center; margin-top:18px;">
@@ -577,7 +717,7 @@
                     dialog.style.cssText = `background: white; padding: 30px; border-radius: 15px; max-width: 600px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3);`;
                     const isAr = this.language === this.Language.ARABIC;
                     dialog.innerHTML = `
-                        <h3 style="margin-bottom: 20px; color: #4f46e5;">${isAr ? `تم العثور على ${dummyIds.length} معرف وهمي` : `Found ${dummyIds.length} dummy IDs`}</h3>
+                        <h3 style="margin-bottom: 20px; color: var(--color-primary);">${isAr ? `تم العثور على ${dummyIds.length} معرف وهمي` : `Found ${dummyIds.length} dummy IDs`}</h3>
                         <p style="margin-bottom: 20px;">${isAr ? 'الرجاء إدخال المعرفات الرسمية (12 رقم لكل معرف):' : 'Please enter official IDs (12 digits each):'}</p>
                         <div id="idInputs" style="margin-bottom: 20px;"></div>
                         <div style="display: flex; gap: 10px; justify-content: flex-end;">
@@ -590,7 +730,7 @@
                         const inputDiv = document.createElement('div');
                         inputDiv.style.cssText = 'margin-bottom: 15px; display: flex; align-items: center; gap: 10px;';
                         inputDiv.innerHTML = `<label style="min-width: 100px; font-weight: bold;">${dummyId}:</label>
-                            <input type="text" id="officialId_${index}" placeholder="123456789012" maxlength="12" style="flex: 1; padding: 8px; border: 2px solid #e5e7eb; border-radius: 6px;">`;
+                            <input type="text" id="officialId_${index}" placeholder="123456789012" maxlength="12" style="flex: 1; padding: 8px; border: 1px solid var(--color-border); border-radius: 6px;">`;
                         inputsContainer.appendChild(inputDiv);
                     });
                     modal.appendChild(dialog);
@@ -601,9 +741,9 @@
                         dummyIds.forEach((dummyId, index) => {
                             const input = document.getElementById(`officialId_${index}`);
                             const value = input.value.trim();
-                            if (!/^\d{12}$/.test(value)) { input.style.borderColor = '#ef4444'; valid = false; }
-                            else if (usedIds.has(value)) { input.style.borderColor = '#f59e0b'; valid = false; this.showMessage(isAr ? 'معرفات مكررة!' : 'Duplicate IDs!', 'error'); }
-                            else { input.style.borderColor = '#10b981'; mapping[dummyId] = value; usedIds.add(value); }
+                            if (!/^\d{12}$/.test(value)) { input.style.borderColor = 'var(--color-danger)'; valid = false; }
+                            else if (usedIds.has(value)) { input.style.borderColor = 'var(--color-warning)'; valid = false; this.showMessage(isAr ? 'معرفات مكررة!' : 'Duplicate IDs!', 'error'); }
+                            else { input.style.borderColor = 'var(--color-success)'; mapping[dummyId] = value; usedIds.add(value); }
                         });
                         if (valid) { cleanup(); resolve(mapping); }
                     };
@@ -694,10 +834,10 @@ x=3, y=2
 -   **حوّل المحددات العرض (display):** أي نص محاط بـ \`$$...$$\` أو \`\\[...\\]\` يجب لفه بـ \`\`...\`\` (backticks مزدوجة).
 -   **حوّل البيئات المعقدة:** أي كتلة LaTeX تبدأ بـ \`\\begin{...}\` وتنتهي بـ \`\\end{...}\` يجب أن تُعامل **دائمًا** كمعادلة عرض وتُلف بـ \`\`...\`\` (backticks مزدوجة).
 
-لا تخترع أي محتوى. اتبع القواعد بدقة.
-
 **نماذج:**
 ${examples}
+
+**قاعدة صارمة:** لا تخترع أي محتوى على الإطلاق. لا تعيد صياغة أي شيء. التزم حرفيًا بالنص الأصلي وقم بتطبيق قواعد التنسيق المذكورة أعلاه فقط. أي تغيير في الكلمات سيُعتبر فشلاً.
 
 **النص المطلوب تحويله:**
 ${rawText}
@@ -729,10 +869,10 @@ You are an expert question formatter and a meticulous academic assistant. Your t
 -   **Convert display delimiters:** Any text surrounded by \`\$$...\$$\` or \`\\[...\\]\` must be wrapped with \`\`...\`\` (double backticks).
 -   **Convert complex environments:** Any LaTeX block that starts with \`\\begin{...}\` and ends with \`\\end{...}\` must **always** be treated as display math and wrapped with \`\`...\`\` (double backticks).
 
-Do not invent any content. Follow the rules precisely.
-
 **Examples:**
 ${examples}
+
+**Strict Rule:** Do NOT invent any content. Do NOT rephrase anything. Adhere literally to the original text and ONLY apply the formatting rules above. Any change in wording is a failure.
 
 **Input Text to Convert:**
 ${rawText}
@@ -1487,7 +1627,12 @@ ${rawText}
                     } else if (part.includes('data-node-type="blank-line"')) {
                         finalHtmlContent += part;
                     } else {
-                        finalHtmlContent += `<span style="white-space: pre-wrap;">${DOMPurify.sanitize(part)}</span>`;
+                        let textPart = DOMPurify.sanitize(part);
+                        // Replace standard quotes with Arabic guillemets for display in Arabic mode
+                        if (language === this.Language.ARABIC) {
+                            textPart = textPart.replace(/"([^"]*)"/g, '«$1»');
+                        }
+                        finalHtmlContent += `<span style="white-space: pre-wrap;">${textPart}</span>`;
                     }
                 }
                 return `<p class="LexicalTheme__paragraph"${direction}>${finalHtmlContent}</p>`;
@@ -2049,7 +2194,7 @@ ${rawText}
                 
                 const templateId = this.subjectTemplateMap[selectedSubject];
                 if (!templateId) {
-                    this.setSafeHTML(previewContainer, '<p style="text-align:center; color:#ef4444;">خطأ: لم يتم العثور على Template ID لهذه المادة</p>');
+                    this.setSafeHTML(previewContainer, '<p style="text-align:center; color:var(--color-danger);">خطأ: لم يتم العثور على Template ID لهذه المادة</p>');
                     return;
                 }
                 
@@ -2061,11 +2206,11 @@ ${rawText}
                 });
                 
                 if (eligibleQuestions.length === 0) {
-                    this.setSafeHTML(previewContainer, '<p style="text-align:center; color:#f59e0b;">لا توجد أسئلة من نوع frq_ai أو string لتطبيق Template ID عليها</p>');
+                    this.setSafeHTML(previewContainer, '<p style="text-align:center; color:var(--color-warning);">لا توجد أسئلة من نوع frq_ai أو string لتطبيق Template ID عليها</p>');
                     return;
                 }
                 
-                let html = `<div style="margin-bottom:15px; padding:10px; background:#dcfce7; border-radius:8px; border:1px solid #16a34a;">
+                let html = `<div style="margin-bottom:15px; padding:10px; background:#dcfce7; border-radius:8px; border:1px solid var(--color-success);">
                     <strong>المادة المختارة:</strong> ${selectedSubject}<br>
                     <strong>Template ID:</strong> ${templateId}<br>
                     <strong>عدد الأسئلة المؤهلة:</strong> ${eligibleQuestions.length}
@@ -2079,7 +2224,7 @@ ${rawText}
                         part.type === this.QuestionType.STRING
                     );
                     
-                    html += `<div style="margin-bottom:10px; padding:8px; background:white; border-radius:6px; border:1px solid #e2e8f0;">
+                    html += `<div style="margin-bottom:10px; padding:8px; background:white; border-radius:6px; border:1px solid var(--color-border);">
                         <strong>السؤال ${index + 1} (ID: ${questionId})</strong><br>
                         <small>الأجزاء المؤهلة: ${parts.map(p => p.type).join(', ')}</small>
                     </div>`;
@@ -2157,3 +2302,4 @@ ${rawText}
     </script>
 </body>
 </html>
+```
