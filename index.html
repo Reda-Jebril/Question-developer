@@ -1,0 +1,2159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>محول الأسئلة الذكي المتطور - النسخة النهائية</title>
+    <!-- Handsontable CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.min.css" />
+    <style>
+        /* --- Basic Setup --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; padding: 20px; color: #333;
+            display: flex; align-items: center; justify-content: center;
+        }
+        /* --- Main Container --- */
+        .container {
+            width: 100%; max-width: 1600px; margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98); border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); overflow: hidden;
+        }
+        /* --- Header --- */
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white; padding: 30px; text-align: center; position: relative; overflow: hidden;
+        }
+        .header::before {
+            content: ''; position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 0.8; } }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); position: relative; z-index: 1; }
+        .header p { font-size: 1.2em; opacity: 0.9; position: relative; z-index: 1; }
+        .ai-badge {
+            position: absolute; top: 15px; right: 15px; background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px; border-radius: 20px; font-size: 0.9em; backdrop-filter: blur(10px);
+        }
+        /* --- Content Layout --- */
+        .content {
+            padding: 40px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px;
+        }
+        .panel {
+            background: #f8fafc; border-radius: 15px; padding: 25px; border: 2px solid #e2e8f0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; display: flex; flex-direction: column;
+        }
+        .panel:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); }
+        .panel h3 { color: #4f46e5; margin-bottom: 20px; font-size: 1.3em; display: flex; align-items: center; gap: 10px; }
+        .question-type-selector {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px;
+        }
+        .q-type-btn { padding: 10px; border: 2px solid #e2e8f0; border-radius: 10px; background-color: #fff; cursor: pointer; transition: all 0.2s ease-in-out; font-weight: 600; color: #475569; text-align: center; }
+        .q-type-btn:hover { background-color: #f1f5f9; border-color: #cbd5e1; }
+        .q-type-btn.active { background-color: #e0e7ff; border-color: #4f46e5; color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .input-section textarea, .edit-textarea {
+            width: 100%; min-height: 250px; padding: 20px; border: 2px solid #e5e7eb; border-radius: 15px;
+            font-size: 14px; line-height: 1.6; resize: vertical; transition: all 0.3s ease;
+            background: white; font-family: 'Courier New', monospace; margin-bottom: 10px;
+        }
+        .input-section textarea:focus, .edit-textarea:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .api-key-section { margin-top: 15px; }
+        .api-key-section input {
+            width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; transition: all 0.3s ease;
+        }
+        .api-key-section input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1); }
+        .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+        .controls .btn { flex-grow: 1; }
+        .btn {
+            padding: 15px 20px; border: none; border-radius: 12px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;
+            text-transform: uppercase; letter-spacing: 1px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn:before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s; }
+        .btn:hover:before { left: 100%; }
+        .btn:disabled { cursor: not-allowed; opacity: 0.6; }
+        .btn-primary { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3); }
+        .btn-secondary { background: #f3f4f6; color: #374151; border: 2px solid #d1d5db; }
+        .btn-secondary:hover:not(:disabled) { background: #e5e7eb; border-color: #9ca3af; }
+        .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
+        .btn-ai { background: linear-gradient(135deg, #ec4899 0%, #d946ef 100%); color: white; }
+        .btn-ai:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(236, 72, 153, 0.3); }
+        .json-output {
+            background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 12px; font-family: 'Courier New', monospace;
+            font-size: 13px; line-height: 1.4; overflow-x: auto; white-space: pre-wrap; max-height: 500px; overflow-y: auto; border: 1px solid #334155; flex-grow: 1; margin-top: 15px;
+        }
+        .json-output .key { color: #60a5fa; } .json-output .string { color: #34d399; } .json-output .number { color: #fbbf24; }
+        .json-output .boolean { color: #f87171; } .json-output .null { color: #a78bfa; }
+        .analysis-section { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .analysis-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 0.9em; }
+        .analysis-item:last-child { border-bottom: none; }
+        .confidence-bar { width: 100px; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+        .confidence-fill { height: 100%; background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981); border-radius: 4px; transition: width 0.5s ease-in-out; }
+        #questionsPreview { flex-grow: 1; overflow-y: auto; max-height: 70vh; }
+        .question-preview { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); animation: fadeIn 0.5s ease; position: relative; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .question-actions { position: absolute; top: 10px; left: 10px; display: none; gap: 8px; z-index: 10; }
+        .question-preview:hover .question-actions { display: flex; }
+        .action-btn { background: rgba(249, 250, 251, 0.8); border: 1px solid #d1d5db; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; backdrop-filter: blur(2px); }
+        .action-btn:hover { background: #4f46e5; border-color: #4f46e5; color: white; transform: scale(1.1); }
+        .action-btn:disabled { opacity: 0.4; cursor: not-allowed; background: #e5e7eb; }
+        .question-preview h4, .question-preview .statement-preview { color: #374151; margin-bottom: 10px; font-size: 1.1em; line-height: 1.5; }
+        .part-preview { border-top: 2px dashed #a5b4fc; margin-top: 15px; padding-top: 15px; }
+        .part-preview h5 { color: #4338ca; font-size: 1em; margin-bottom: 8px; }
+        .question-type-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; margin-bottom: 10px; }
+        .type-mcq { background: #dbeafe; color: #1e40af; } .type-mrq { background: #e0e7ff; color: #3730a3; } .type-matching { background: #e0e7ff; color: #3730a3; }
+        .type-gapText { background: #d1fae5; color: #065f46; } .type-string { background: #fef3c7; color: #92400e; }
+        .type-frq { background: #fce7f3; color: #be185d; } .type-frq_ai { background: #fce7f3; color: #be185d; }
+        .type-oq { background: #fef9c3; color: #854d0e; } .type-input_box { background: #f3e8ff; color: #6b21a8; } .type-unknown { background: #fee2e2; color: #991b1b; }
+        .choice-item { padding: 8px 15px; margin: 5px 0; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer; transition: all 0.2s ease; }
+        .choice-item:hover { background: #f3f4f6; border-color: #4f46e5; }
+        .choice-item.correct { background: #dcfce7; border-color: #16a34a; color: #15803d; font-weight: bold; }
+        .choice-item.correct::before { content: '✔ '; color: #15803d; }
+        .matching-preview { display: flex; gap: 20px; }
+        .matching-column { flex: 1; }
+        .matching-item { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
+        .gapped-text-answers { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; }
+        .gapped-text-answers strong { color: #4f46e5; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05); border: 1px solid #e5e7eb; transition: all 0.3s ease; }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08); }
+        .stat-card h4 { color: #4f46e5; margin-bottom: 10px; font-size: 0.9em; }
+        .stat-card span { font-size: 2em; font-weight: bold; color: #1f2937; }
+        .loading { display: none; text-align: center; padding: 20px; }
+        .spinner { border: 4px solid #f3f4f6; border-top: 4px solid #4f46e5; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        .btn .spinner { width: 20px; height: 20px; margin: 0; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .message-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .message { padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); animation: slideIn 0.5s ease, fadeOut 0.5s ease 3.5s forwards; font-weight: 500; min-width: 300px; text-align: center; position: relative; }
+        .message.error { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+        .message.success { background: #dcfce7; color: #065f46; border: 1px solid #a7f3d0; }
+        .message.warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .message .close-x { position: absolute; top: 6px; left: 8px; cursor: pointer; font-weight: bold; opacity: .6; }
+        @keyframes slideIn { from { transform: translateY(-50px) translateX(-50%); opacity: 0; } to { transform: translateY(0) translateX(-50%); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-20px) translateX(-50%); } }
+        #csvModalBg, #aiTemplateModalBg, #subjectTemplateModalBg {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.25); z-index: 3000; align-items: center; justify-content: center;
+        }
+        #csvModal, #aiTemplateModal, #subjectTemplateModal {
+            background: white; border-radius: 16px; max-width: 1200px; width: 95vw; padding: 32px 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15); position: relative; min-height: 600px; min-width: 900px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        #csvModal .hot-container, #aiTemplateModal .hot-container { margin-bottom: 18px; width: 100%; }
+        #csvModal .btn, #aiTemplateModal .btn, #subjectTemplateModal .btn { min-width: 120px; }
+        #csvModal .csv-warning { color: #dc2626; font-weight: bold; margin-bottom: 10px; }
+        
+        math-field {
+            border: 1px solid #ddd; padding: 2px 5px; border-radius: 4px; font-size: 1.1em; 
+            display: inline-block; background: #f9f9f9;
+            min-width: 20px;
+            vertical-align: -0.25em;
+        }
+        math-field:focus-within {
+            background-color: #eef2ff;
+            box-shadow: 0 0 0 2px #4f46e5;
+            outline: none;
+        }
+
+        @media (max-width: 1200px) { .content { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 768px) {
+            body { padding: 10px; } .content { grid-template-columns: 1fr; padding: 20px; }
+            .header h1 { font-size: 2em; } .header p { font-size: 1em; }
+            .controls { flex-direction: column; } .btn { width: 100%; } .question-type-selector { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div id="messageContainer" class="message-container"></div>
+    <div class="container">
+        <div class="header">
+            <div class="ai-badge">🤖 AI Powered</div>
+            <h1 id="main-title">🚀 محول الأسئلة الذكي المتطور</h1>
+            <p id="main-subtitle">حوّل نصوص الأسئلة إلى صيغة JSON متقدمة بضغطة زر</p>
+        </div>
+        <div class="content">
+            <!-- Input Panel -->
+            <div class="panel">
+                <h3 id="panel-title-1"><span style="font-size: 1.5em; line-height: 1;">①</span> اختر نوع السؤال (للنص البسيط)</h3>
+                <div id="questionTypeSelector" class="question-type-selector"></div>
+                <h3 id="panel-title-2" style="margin-top: 20px;"><span style="font-size: 1.5em; line-height: 1;">②</span> أدخل النص</h3>
+                <div class="input-section">
+                    <textarea id="questionInput" placeholder="أدخل محتوى السؤال هنا...
+سيتم تجاهل أي بيانات وصفية مثل id أو language (ما عدا type الذي سيضاف تلقائيًا).
+استخدم الوسوم مثل [STEM] و [CHOICES] لتحديد أجزاء السؤال.
+افصل بين كل سؤال بـ ---
+"></textarea>
+                </div>
+                <div class="api-key-section">
+                    <input type="password" id="apiKey" placeholder="🔑 أدخل مفتاح Gemini API هنا (اختياري)">
+                </div>
+                <div class="controls">
+                    <button id="smart-analyze-btn" class="btn btn-primary" aria-label="تحليل ذكي">🤖 تحليل ذكي</button>
+                    <button id="aiEnhanceBtn" class="btn btn-ai" aria-label="تحسين بالذكاء الاصطناعي">💎 تحسين بالـ AI</button>
+                </div>
+                <div class="controls">
+                    <button id="convert-json-btn" class="btn btn-success" aria-label="تحويل إلى JSON">🔄 تحويل لـ JSON</button>
+                    <button id="customizeBtn" class="btn btn-secondary" aria-label="تخصيص">⚙️ تخصيص</button>
+                    <button id="clear-all-btn" class="btn btn-secondary" aria-label="مسح الكل">🗑️ مسح الكل</button>
+                    <button id="langSwitchBtn" class="btn btn-warning" aria-label="تبديل اللغة">🌐 English</button>
+                </div>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p id="loading-text">جاري التحليل...</p>
+                </div>
+            </div>
+            <!-- Analysis & Output Panel -->
+            <div class="panel">
+                <h3 id="panel-title-3">🔍 تحليل ومخرجات</h3>
+                <div class="analysis-section" id="analysisSection">
+                    <div class="analysis-item"><span id="analysis-label-1">جودة الكشف:</span><div class="confidence-bar"><div id="detectionQuality" class="confidence-fill" style="width: 0%"></div></div></div>
+                    <div class="analysis-item"><span id="analysis-label-2">دقة التصنيف:</span><div class="confidence-bar"><div id="classificationAccuracy" class="confidence-fill" style="width: 0%"></div></div></div>
+                    <div class="analysis-item"><span id="analysis-label-3">اكتمال البيانات:</span><div class="confidence-bar"><div id="dataCompleteness" class="confidence-fill" style="width: 0%"></div></div></div>
+                </div>
+                <div class="stats" id="stats">
+                    <div class="stat-card"><h4 id="stats-label-1">إجمالي الأسئلة</h4><span id="totalQuestions">0</span></div>
+                    <div class="stat-card"><h4 id="stats-label-2">معدل الثقة</h4><span id="confidenceScore">0%</span></div>
+                </div>
+                <div class="json-output" id="jsonOutput" style="display: none;"></div>
+                <div class="controls" style="margin-top: auto;">
+                    <button id="copyBtn" class="btn btn-secondary" disabled aria-label="نسخ JSON">📋 نسخ JSON</button>
+                    <button id="downloadBtn" class="btn btn-warning" disabled aria-label="تحميل JSON">💾 تحميل</button>
+                    <button id="downloadZipBtn" class="btn btn-warning" disabled aria-label="تحميل ZIP">🗜️ تحميل كـ ZIP</button>
+                    <button id="csvBtn" class="btn btn-secondary" disabled aria-label="CSV">📄 CSV</button>
+                </div>
+            </div>
+            <!-- Preview Panel -->
+            <div class="panel">
+                <h3 id="panel-title-4">👁️ معاينة الأسئلة</h3>
+                <div id="questionsPreview">
+                    <div id="preview-placeholder" style="text-align: center; color: #6b7280; padding: 40px; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <div style="font-size: 3em; margin-bottom: 20px;">📋</div>
+                        <p>ستظهر معاينة الأسئلة هنا بعد التحليل</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Customize Modal -->
+    <div id="customizeModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:2000; align-items:center; justify-content:center;" role="dialog" aria-modal="true" aria-labelledby="customize-title">
+        <div style="background:white; border-radius:16px; max-width:400px; width:90vw; padding:32px 24px; box-shadow:0 8px 32px rgba(0,0,0,0.15); position:relative;">
+            <button id="customize-modal-close-btn" style="position:absolute; top:12px; left:12px; background:none; border:none; font-size:1.5em; cursor:pointer;" aria-label="إغلاق">×</button>
+            <h2 id="customize-title" style="text-align:center; margin-bottom:24px; color:#4f46e5;">تخصيص الإعدادات</h2>
+            <div style="margin-bottom:18px;">
+                <label for="categorySelect" style="font-weight:bold;">Category</label>
+                <select id="categorySelect" style="width:100%; padding:10px; border-radius:8px; border:1px solid #e5e7eb; margin-top:6px;">
+                    <option value="lesson" selected>lesson</option>
+                    <option value="exam">exam</option>
+                </select>
+            </div>
+            <div style="margin-bottom:18px;">
+                <label for="langSelect" style="font-weight:bold;">Lang</label>
+                <select id="langSelect" style="width:100%; padding:10px; border-radius:8px; border:1px solid #e5e7eb; margin-top:6px;">
+                    <option value="ar" selected>ar</option>
+                    <option value="en">en</option>
+                </select>
+            </div>
+            <div style="margin-bottom:18px;">
+                <label for="countrySelect" style="font-weight:bold;">Country</label>
+                <select id="countrySelect" style="width:100%; padding:10px; border-radius:8px; border:1px solid #e5e7eb; margin-top:6px;">
+                    <option value="eg" selected>eg</option>
+                    <option value="sa">sa</option>
+                    <option value="ae">ae</option>
+                    <option value="kw">kw</option>
+                    <option value="qa">qa</option>
+                    <option value="bh">bh</option>
+                    <option value="om">om</option>
+                </select>
+            </div>
+            <div style="margin-bottom:24px;">
+                <label for="dialectSelect" style="font-weight:bold;">Dialect</label>
+                <select id="dialectSelect" style="width:100%; padding:10px; border-radius:8px; border:1px solid #e5e7eb; margin-top:6px;">
+                    <option value="Modern_standard" selected>Modern_standard</option>
+                </select>
+            </div>
+            <button id="aiTemplateBtn" class="btn btn-secondary" style="width:100%; margin-top: 10px;">AI Template ID</button>
+            <button id="subjectTemplateBtn" class="btn btn-secondary" style="width:100%; margin-top: 10px;">Subject Template ID</button>
+            <button id="customize-save-btn" class="btn btn-primary" style="width:100%; margin-top: 10px;">حفظ</button>
+        </div>
+    </div>
+    <!-- Handsontable CSV Modal -->
+    <div id="csvModalBg" role="dialog" aria-modal="true" aria-labelledby="csv-title">
+        <div id="csvModal">
+            <button id="csv-modal-close-btn" style="position:absolute; top:12px; left:12px; background:none; border:none; font-size:1.5em; cursor:pointer;" aria-label="إغلاق">×</button>
+            <h2 id="csv-title" style="text-align:center; margin-bottom:18px; color:#4f46e5;">CSV Editor</h2>
+            <div class="csv-warning" id="csvWarning" style="display:none;"></div>
+            <div id="hotTable" class="hot-container"></div>
+            <div style="display:flex; gap:10px; justify-content:center; margin-top:18px;">
+                <button id="csv-save-btn" class="btn btn-success">💾 حفظ</button>
+                <button id="csv-close-btn" class="btn btn-secondary">❌ إغلاق</button>
+            </div>
+        </div>
+    </div>
+    <!-- AI Template ID Modal -->
+    <div id="aiTemplateModalBg" role="dialog" aria-modal="true" aria-labelledby="ai-template-title">
+        <div id="aiTemplateModal">
+            <button id="ai-template-modal-close-btn" style="position:absolute; top:12px; left:12px; background:none; border:none; font-size:1.5em; cursor:pointer;" aria-label="إغلاق">×</button>
+            <h2 id="ai-template-title" style="text-align:center; margin-bottom:18px; color:#4f46e5;">Set AI Template IDs</h2>
+            <div id="hotAiTemplateTable" class="hot-container"></div>
+            <div style="display:flex; gap:10px; justify-content:center; margin-top:18px;">
+                <button id="ai-template-save-btn" class="btn btn-success">💾 حفظ</button>
+                <button id="ai-template-close-btn" class="btn btn-secondary">❌ إغلاق</button>
+            </div>
+        </div>
+    </div>
+    <!-- Subject Template ID Modal -->
+    <div id="subjectTemplateModalBg" role="dialog" aria-modal="true" aria-labelledby="subject-template-title">
+        <div id="subjectTemplateModal">
+            <button id="subject-template-modal-close-btn" style="position:absolute; top:12px; left:12px; background:none; border:none; font-size:1.5em; cursor:pointer;" aria-label="إغلاق">×</button>
+            <h2 id="subject-template-title" style="text-align:center; margin-bottom:18px; color:#4f46e5;">اختر المادة لتطبيق Template ID</h2>
+            <div style="margin-bottom: 20px;">
+                <label for="subjectSelect" style="font-weight:bold; display:block; margin-bottom:10px;">المادة / Subject:</label>
+                <select id="subjectSelect" style="width:100%; padding:12px; border-radius:8px; border:2px solid #e5e7eb; font-size:14px;">
+                    <option value="">-- اختر المادة --</option>
+                    <option value="الأحياء">الأحياء</option>
+                    <option value="الرياضيات">الرياضيات</option>
+                    <option value="العلوم">العلوم</option>
+                    <option value="العلوم المتكاملة">العلوم المتكاملة</option>
+                    <option value="الفيزياء">الفيزياء</option>
+                    <option value="الكيمياء">الكيمياء</option>
+                    <option value="اللغة العربية">اللغة العربية</option>
+                    <option value="اكتشف">اكتشف</option>
+                    <option value="التاريخ">التاريخ</option>
+                    <option value="الجغرافيا">الجغرافيا</option>
+                    <option value="الدراسات الاجتماعية">الدراسات الاجتماعية</option>
+                    <option value="الفلسفة والمنطق">الفلسفة والمنطق</option>
+                    <option value="علم النفس والاجتماع">علم النفس والاجتماع</option>
+                    <option value="Biologie">Biologie</option>
+                    <option value="Biology">Biology</option>
+                    <option value="Chemistry">Chemistry</option>
+                    <option value="Connect Plus">Connect Plus</option>
+                    <option value="Discover">Discover</option>
+                    <option value="English">English</option>
+                    <option value="Integrated Science">Integrated Science</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Physics">Physics</option>
+                    <option value="Science">Science</option>
+                    <option value="Sciences">Sciences</option>
+                </select>
+            </div>
+            <div id="subjectQuestionsPreview" style="margin-bottom:20px; max-height:300px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; padding:15px; background:#f8fafc;">
+                <p style="text-align:center; color:#6b7280;">ستظهر الأسئلة المؤهلة هنا بعد اختيار المادة</p>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:center; margin-top:18px;">
+                <button id="subject-template-save-btn" class="btn btn-success">💾 تطبيق</button>
+                <button id="subject-template-close-btn" class="btn btn-secondary">❌ إغلاق</button>
+            </div>
+        </div>
+    </div>
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.min.js"></script>
+    <script src="https://unpkg.com/mathlive"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        class AIQuestionConverter {
+            constructor() {
+                // --- 1. CONFIGURATION ---
+                this.config = Object.freeze({
+                    api: {
+                        geminiEndpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='
+                    },
+                    defaults: {
+                        country: 'eg',
+                        category: 'lesson',
+                        dialect: 'Modern_standard',
+                        sourceId: 182136230818,
+                        lang: 'ar'
+                    },
+                    flags: {
+                        convertArabicLatex: false
+                    },
+                    ARABIC_LATEX_MAP: {
+                        "F(x)": "\\dotlessqaft (\\seen)", "Q'": "\\dotlessnoont \\prime", 'N': '\\tah', 'Z': '\\sadt',
+                        'Q': '\\dotlessnoont', 'X': '\\seent', 'Y': '\\sadt', 'x': '\\seen', 'y': '\\sad',
+                        'z': '\\ain', 'A': '\\alt{\\alef}', 'B': '\\beh', 'C': '\\jeemi', 'D': '\\dal',
+                        'E': '\\hehi', 'F': '\\waw', 'M': '\\meem', 'n': '\\noon', 'K': '\\kaf',
+                        'L': '\\lam', 's': '\\feh', 'O': '\\waw', 'R': '\\haht', 'r': '\\aint',
+                    }
+                });
+                // --- 2. ENUMS & CONSTANTS ---
+                this.QuestionType = Object.freeze({
+                    MCQ: "mcq", MRQ: "mrq", STRING: "string", OQ: "oq", GAP_TEXT: "gapText",
+                    MATCHING: "matching", INPUT_BOX: "input_box", FRQ: "frq", FRQ_AI: "frq_ai", UNKNOWN: "unknown"
+                });
+                this.Language = Object.freeze({ ARABIC: "ar", ENGLISH: "en" });
+                // --- 3. UTILITIES ---
+                this.logger = {
+                    info: (message) => console.log(`[INFO] ✨: ${message}`),
+                    warn: (message) => console.warn(`[WARN] ⚠️: ${message}`),
+                    error: (message, errorObj = '') => console.error(`[ERROR] ❌: ${message}`, errorObj)
+                };
+                // --- 4. STATE INITIALIZATION ---
+                this.questions = [];
+                this.isAIProcessing = false;
+                this.jsonForExport = '';
+                this.activeQuestionType = this.QuestionType.MCQ; // Default for simple text
+                this.customization = { ...this.config.defaults };
+                this.apiKey = '';
+                this.csvData = [];
+                this.hotInstance = null;
+                this.aiTemplateHotInstance = null;
+                this.language = this.config.defaults.lang;
+                this.aiAbortController = null;
+                this.subjectTemplateMap = {
+                    "الأحياء": "352108393701",
+                    "الرياضيات": "357135867402",
+                    "العلوم": "352108393701",
+                    "العلوم المتكاملة": "352108393701",
+                    "الفيزياء": "352108393701",
+                    "الكيمياء": "352108393701",
+                    "اللغة العربية": "248170436092",
+                    "اكتشف": "248170436092",
+                    "التاريخ": "750162567617",
+                    "الجغرافيا": "257121690289",
+                    "الدراسات الاجتماعية": "738178680941",
+                    "الفلسفة والمنطق": "186183541809",
+                    "علم النفس والاجتماع": "457197047804",
+                    "Biologie": "352108393701",
+                    "Biology": "352108393701",
+                    "Chemistry": "352108393701",
+                    "Connect Plus": "892167914601",
+                    "Discover": "352108393701",
+                    "English": "328173624946",
+                    "Integrated Science": "352108393701",
+                    "Mathematics": "357135867402",
+                    "Physics": "352108393701",
+                    "Science": "352108393701",
+                    "Sciences": "352108393701"
+                };
+                // --- 5. APP BOOTSTRAP ---
+                this.loadSettings();
+                this.loadApiKey();
+                this.renderQuestionTypeButtons();
+                this.setActiveQuestionType(this.activeQuestionType);
+                this.updateInterfaceLanguage();
+                this.bindEvents();
+                this.logger.info("Application initialized successfully.");
+            }
+            // Safe HTML setter (global sanitizer)
+            setSafeHTML(el, html) {
+                const safe = DOMPurify.sanitize(html, {
+                    ALLOW_DATA_ATTR: true,
+                    ALLOW_CUSTOM_ELEMENTS: true,
+                    ADD_TAGS: ['math-field','span','p','div','strong','ul','li', 'h4', 'h5', 'br', 'b'],
+                    ADD_ATTR: ['value','locale','lang','class','dir','style','data-node-type','data-node-variation', 'title', 'aria-label', 'data-question-id', 'data-part-index', 'data-field-type', 'data-choice-index', 'data-math-index', 'default-mode']
+                });
+                el.innerHTML = safe;
+            }
+            setLoading(isLoading, textAr = 'جاري التحليل...', textEn = 'Analyzing...') {
+                const loading = document.getElementById('loading');
+                const loadingText = document.getElementById('loading-text');
+                loading.style.display = isLoading ? 'block' : 'none';
+                loadingText.textContent = this.language === this.Language.ARABIC ? textAr : textEn;
+            }
+            bindEvents() {
+                document.getElementById('smart-analyze-btn').addEventListener('click', () => this.smartAnalyze());
+                document.getElementById('aiEnhanceBtn').addEventListener('click', () => this.enhanceWithAI());
+                document.getElementById('convert-json-btn').addEventListener('click', () => this.convertToJSON());
+                document.getElementById('clear-all-btn').addEventListener('click', () => this.clearAll());
+                document.getElementById('langSwitchBtn').addEventListener('click', () => this.toggleLanguage());
+                document.getElementById('copyBtn').addEventListener('click', () => this.copyJSON());
+                document.getElementById('downloadBtn').addEventListener('click', () => this.downloadJSON());
+                document.getElementById('downloadZipBtn').addEventListener('click', () => this.downloadZip());
+                document.getElementById('csvBtn').addEventListener('click', () => this.openCSVModal());
+                document.getElementById('csv-modal-close-btn').addEventListener('click', () => this.closeCSVModal());
+                document.getElementById('csv-save-btn').addEventListener('click', () => this.saveCSVData());
+                document.getElementById('csv-close-btn').addEventListener('click', () => this.closeCSVModal());
+                document.getElementById('apiKey').addEventListener('input', () => this.saveApiKey());
+                // Customize Modal Events
+                document.getElementById('customizeBtn').addEventListener('click', () => this.openCustomizeModal());
+                document.getElementById('customize-modal-close-btn').addEventListener('click', () => this.closeCustomizeModal());
+                document.getElementById('customize-save-btn').addEventListener('click', () => this.saveCustomization());
+                document.getElementById('aiTemplateBtn').addEventListener('click', () => this.openAiTemplateModal());
+                document.getElementById('subjectTemplateBtn').addEventListener('click', () => this.openSubjectTemplateModal());
+                
+                // AI Template ID Modal Events
+                document.getElementById('ai-template-modal-close-btn').addEventListener('click', () => this.closeAiTemplateModal());
+                document.getElementById('ai-template-save-btn').addEventListener('click', () => this.saveAiTemplateData());
+                document.getElementById('ai-template-close-btn').addEventListener('click', () => this.closeAiTemplateModal());
+
+                // Subject Template ID Modal Events
+                document.getElementById('subject-template-modal-close-btn').addEventListener('click', () => this.closeSubjectTemplateModal());
+                document.getElementById('subject-template-save-btn').addEventListener('click', () => this.saveSubjectTemplateData());
+                document.getElementById('subject-template-close-btn').addEventListener('click', () => this.closeSubjectTemplateModal());
+                document.getElementById('subjectSelect').addEventListener('change', () => this.updateSubjectQuestionsPreview());
+
+                // Modal ESC close
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        if (document.getElementById('csvModalBg').style.display === 'flex') this.closeCSVModal();
+                        if (document.getElementById('customizeModal').style.display === 'flex') this.closeCustomizeModal();
+                        if (document.getElementById('aiTemplateModalBg').style.display === 'flex') this.closeAiTemplateModal();
+                        if (document.getElementById('subjectTemplateModalBg').style.display === 'flex') this.closeSubjectTemplateModal();
+                    }
+                });
+                document.getElementById('questionsPreview').addEventListener('click', (event) => {
+                    const target = event.target.closest('.action-btn, .btn-save-edit, .btn-cancel-edit');
+                    if (!target) return;
+                    const questionPreview = target.closest('.question-preview');
+                    if (!questionPreview) return;
+                    const questionId = questionPreview.dataset.id;
+                    if (target.classList.contains('delete-btn')) {
+                        this.deleteQuestion(questionId);
+                    } else if (target.classList.contains('edit-btn')) {
+                        this.startEditQuestion(questionId);
+                    } else if (target.classList.contains('btn-save-edit')) {
+                        this.saveEditQuestion(questionId);
+                    } else if (target.classList.contains('btn-cancel-edit')) {
+                        this.cancelEditQuestion(questionId);
+                    }
+                });
+                
+                document.getElementById('questionsPreview').addEventListener('input', (e) => {
+                    if (e.target.tagName.toLowerCase() === 'math-field') {
+                        this.handleMathFieldInput(e);
+                    }
+                });
+            }
+            renderQuestionTypeButtons() {
+                const container = document.getElementById('questionTypeSelector');
+                if (!container) return;
+                container.innerHTML = '';
+                const configs = {
+                    [this.QuestionType.MCQ]: { label: 'MCQ', jsonType: 'mcq' },
+                    [this.QuestionType.MRQ]: { label: 'MRQ', jsonType: 'mrq' },
+                    [this.QuestionType.MATCHING]: { label: 'Matching', jsonType: 'matching' },
+                    [this.QuestionType.GAP_TEXT]: { label: 'Gapped Text', jsonType: 'gapText' },
+                    [this.QuestionType.STRING]: { label: 'String', jsonType: 'string' },
+                    [this.QuestionType.FRQ]: { label: 'Free Response', jsonType: 'frq' },
+                    [this.QuestionType.OQ]: { label: 'Ordering (OQ)', jsonType: 'oq' },
+                    [this.QuestionType.FRQ_AI]: { label: 'FRQ (AI)', jsonType: 'frq_ai' },
+                    [this.QuestionType.INPUT_BOX]: { label: 'Input Box', jsonType: 'input_box' }
+                };
+                this.questionTypeConfigs = configs;
+                for (const typeKey in configs) {
+                    const config = configs[typeKey];
+                    const button = document.createElement('button');
+                    button.className = 'q-type-btn';
+                    button.textContent = config.label;
+                    button.dataset.type = typeKey;
+                    button.onclick = () => this.setActiveQuestionType(typeKey);
+                    container.appendChild(button);
+                }
+            }
+            setActiveQuestionType(typeKey) {
+                this.activeQuestionType = typeKey;
+                document.querySelectorAll('.q-type-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.type === typeKey);
+                });
+            }
+            // ***************************************************************
+            // ** ID & VALIDATION LOGIC **
+            // ***************************************************************
+            extractDummyIds(content) {
+                const dummyIds = [];
+                const blocks = content.split(/\n---\n/).filter(block => block.trim());
+                blocks.forEach(block => {
+                    const lines = block.trim().split('\n');
+                    for (const line of lines) {
+                        const match = line.match(/^id:\s*(new\w+)/);
+                        if (match) { dummyIds.push(match[1]); break; }
+                    }
+                });
+                return [...new Set(dummyIds)];
+            }
+            async promptForOfficialIds(dummyIds) {
+                return new Promise((resolve) => {
+                    const modal = document.createElement('div');
+                    modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center;`;
+                    const dialog = document.createElement('div');
+                    dialog.style.cssText = `background: white; padding: 30px; border-radius: 15px; max-width: 600px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3);`;
+                    const isAr = this.language === this.Language.ARABIC;
+                    dialog.innerHTML = `
+                        <h3 style="margin-bottom: 20px; color: #4f46e5;">${isAr ? `تم العثور على ${dummyIds.length} معرف وهمي` : `Found ${dummyIds.length} dummy IDs`}</h3>
+                        <p style="margin-bottom: 20px;">${isAr ? 'الرجاء إدخال المعرفات الرسمية (12 رقم لكل معرف):' : 'Please enter official IDs (12 digits each):'}</p>
+                        <div id="idInputs" style="margin-bottom: 20px;"></div>
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button id="cancelIds" class="btn btn-secondary">${isAr ? 'إلغاء' : 'Cancel'}</button>
+                            <button id="confirmIds" class="btn btn-primary">${isAr ? 'تأكيد' : 'Confirm'}</button>
+                        </div>
+                    `;
+                    const inputsContainer = dialog.querySelector('#idInputs');
+                    dummyIds.forEach((dummyId, index) => {
+                        const inputDiv = document.createElement('div');
+                        inputDiv.style.cssText = 'margin-bottom: 15px; display: flex; align-items: center; gap: 10px;';
+                        inputDiv.innerHTML = `<label style="min-width: 100px; font-weight: bold;">${dummyId}:</label>
+                            <input type="text" id="officialId_${index}" placeholder="123456789012" maxlength="12" style="flex: 1; padding: 8px; border: 2px solid #e5e7eb; border-radius: 6px;">`;
+                        inputsContainer.appendChild(inputDiv);
+                    });
+                    modal.appendChild(dialog);
+                    document.body.appendChild(modal);
+                    const cleanup = () => document.body.removeChild(modal);
+                    dialog.querySelector('#confirmIds').onclick = () => {
+                        const mapping = {}; let valid = true; const usedIds = new Set();
+                        dummyIds.forEach((dummyId, index) => {
+                            const input = document.getElementById(`officialId_${index}`);
+                            const value = input.value.trim();
+                            if (!/^\d{12}$/.test(value)) { input.style.borderColor = '#ef4444'; valid = false; }
+                            else if (usedIds.has(value)) { input.style.borderColor = '#f59e0b'; valid = false; this.showMessage(isAr ? 'معرفات مكررة!' : 'Duplicate IDs!', 'error'); }
+                            else { input.style.borderColor = '#10b981'; mapping[dummyId] = value; usedIds.add(value); }
+                        });
+                        if (valid) { cleanup(); resolve(mapping); }
+                    };
+                    dialog.querySelector('#cancelIds').onclick = () => { cleanup(); resolve(null); };
+                });
+            }
+            // ***************************************************************
+            // ** PARSING & AI LOGIC **
+            // ***************************************************************
+            buildAdvancedFormattingPrompt(rawText) {
+                const isArabic = this.language === this.Language.ARABIC;
+                
+                const examples = `
+مثال MCQ (نجمة واحدة فقط):
+type: mcq
+[STEM]
+ما عاصمة فرنسا؟
+[CHOICES]
+- لندن
+* باريس
+- مدريد
+---
+مثال صواب أم خطأ:
+type: mcq
+[STEM]
+هل باريس عاصمة فرنسا؟ صواب أم خطأ؟
+[CHOICES]
+* صواب
+- خطأ
+---
+مثال MRQ (أكثر من نجمة):
+type: mrq
+[STEM]
+اختر كل اللغات البرمجية:
+[CHOICES]
+* Python
+- HTML
+* JavaScript
+---
+مثال Matching:
+type: matching
+[STEM]
+صل الدول بعواصمها:
+[MATCHING_PAIRS]
+فرنسا | باريس
+ألمانيا | برلين
+---
+مثال GapText:
+type: gapText
+[STEM]
+الكوكب [BLANK] هو الأكبر وله [BLANK] قمراً.
+[GAPS]
+المشتري
+79
+---
+مثال معادلة معقدة:
+type: string
+[STEM]
+أوجد حل النظام التالي:
+\`\`
+\\begin{cases} x+y=5 \\\\ x-y=1 \\end{cases}
+\`\`
+[ANSWER]
+x=3, y=2
+`;
+                const basePromptAr = `
+أنت مُنسّق أسئلة خبير ومساعد أكاديمي دقيق. مهمتك هي تحويل نص غير منظم إلى تنسيق منظم وموحد.
+
+**التعليمات الأساسية:**
+1.  **اكتشف** كل سؤال في النص.
+2.  **حدد نوع** كل سؤال تلقائيًا من: mcq, mrq, oq, gapText, matching, string, frq, frq_ai, input_box.
+3.  **أخرج كل سؤال بالتنسيق التالي:**
+    -   سطر بيانات وصفية في الأعلى، مثال: \`type: mcq\`
+    -   وسم \`[STEM]\` لنص السؤال الرئيسي.
+    -   وسوم المحتوى حسب نوع السؤال (\`[CHOICES]\`, \`[MATCHING_PAIRS]\`, \`[GAPS]\`, \`[ANSWER]\`).
+    -   استخدم \`---\` للفصل بين كل سؤال وآخر.
+
+**قواعد أنواع الأسئلة (مهم):**
+-   **MCQ/MRQ:** استخدم \`*\` قبل الإجابة الصحيحة و \`-\` قبل الخاطئة. **MCQ** يجب أن يحتوي على نجمة واحدة فقط، بينما **MRQ** يمكن أن يحتوي على نجمة واحدة أو أكثر.
+-   **أسئلة الصواب والخطأ:** الأسئلة التي تحتوي على "صواب أم خطأ"، "خطأ أم صواب"، "true or false"، "false or true" يجب تنسيقها كـ MCQ مع وضع "صواب" أو "True" كأول اختيار.
+-   **Matching:** يجب أن تكون الأزواج في \`[MATCHING_PAIRS]\` مفصولة بـ \`|\`.
+-   **GapText:** استخدم \`[BLANK]\` في نص السؤال لكل فجوة، وضع الإجابات بالترتيب في \`[GAPS]\`.
+-   **Input Box:** يجب أن تكون الإجابة في \`[ANSWER]\` بصيغة \`القيمة | الوحدة\` أو \`القيمة\` فقط إذا لم تكن هناك وحدة.
+
+**قواعد الرياضيات (مهمة للغاية ويجب اتباعها بدقة):**
+-   **لا تقم أبدًا بتعديل** محتوى أو صيغة أي كود LaTeX.
+-   **حوّل المحددات السطرية (inline):** أي نص محاط بـ \`$...\$\` أو \`\\(...\\)\` يجب لفه بـ \`...\` (backtick فردية).
+-   **حوّل المحددات العرض (display):** أي نص محاط بـ \`$$...$$\` أو \`\\[...\\]\` يجب لفه بـ \`\`...\`\` (backticks مزدوجة).
+-   **حوّل البيئات المعقدة:** أي كتلة LaTeX تبدأ بـ \`\\begin{...}\` وتنتهي بـ \`\\end{...}\` يجب أن تُعامل **دائمًا** كمعادلة عرض وتُلف بـ \`\`...\`\` (backticks مزدوجة).
+
+لا تخترع أي محتوى. اتبع القواعد بدقة.
+
+**نماذج:**
+${examples}
+
+**النص المطلوب تحويله:**
+${rawText}
+
+**الناتج المنسق:**
+`;
+                const basePromptEn = `
+You are an expert question formatter and a meticulous academic assistant. Your task is to convert unstructured text into a standardized, structured format.
+
+**Core Instructions:**
+1.  **Detect** every question in the text.
+2.  **Auto-detect** the type for each question from: mcq, mrq, oq, gapText, matching, string, frq, frq_ai, input_box.
+3.  **Format each question as follows:**
+    -   A metadata line at the top, e.g., \`type: mcq\`
+    -   A \`[STEM]\` tag for the main question text.
+    -   Content tags based on the question type (\`[CHOICES]\`, \`[MATCHING_PAIRS]\`, \`[GAPS]\`, \`[ANSWER]\`).
+    -   Use \`---\` to separate each question.
+
+**Question Type Rules (Important):**
+-   **MCQ/MRQ:** Use \`*\` before a correct answer and \`-\` before an incorrect one. **MCQ** must have exactly one star, while **MRQ** can have one or more.
+-   **True/False Questions:** Questions containing "true or false", "false or true", "صواب أم خطأ", "خطأ أم صواب" should be formatted as MCQ with "True" or "صواب" as the first choice.
+-   **Matching:** Pairs under \`[MATCHING_PAIRS]\` must be separated by \`|\`.
+-   **GapText:** Use \`[BLANK]\` in the stem for each gap, and place the ordered answers under \`[GAPS]\`.
+-   **Input Box:** The answer under \`[ANSWER]\` should be in the format \`value | unit\` or just \`value\` if there is no unit.
+
+**Mathematics Rules (Crucial and must be followed precisely):**
+-   **Never modify** the content or syntax of any LaTeX code.
+-   **Convert inline delimiters:** Any text surrounded by \`\$...\$\` or \`\\(...\\)\` must be wrapped with \`...\` (single backticks).
+-   **Convert display delimiters:** Any text surrounded by \`\$$...\$$\` or \`\\[...\\]\` must be wrapped with \`\`...\`\` (double backticks).
+-   **Convert complex environments:** Any LaTeX block that starts with \`\\begin{...}\` and ends with \`\\end{...}\` must **always** be treated as display math and wrapped with \`\`...\`\` (double backticks).
+
+Do not invent any content. Follow the rules precisely.
+
+**Examples:**
+${examples}
+
+**Input Text to Convert:**
+${rawText}
+
+**Formatted Output:**
+`;
+                return isArabic ? basePromptAr : basePromptEn;
+            }
+            cleanFormattedText(t) {
+                if (!t) return '';
+                let s = t.trim();
+                const fence = s.match(/```[a-zA-Z0-9]*\s*\n([\s\S]*?)\n```/);
+                if (fence) s = fence[1].trim();
+                s = s.replace(/^\s*(Here's the formatted text:|إليك النص المُنسق:|The formatted text is:)\s*/gmi, '');
+                s = s.replace(/\n{3,}/g, '\n\n');
+                return s.trim();
+            }
+            
+            convertDollarMathToBackticks(text) {
+                if (!text) return text;
+                return text
+                    .replace(/\$\$([\s\S]*?)\$\$/g, '``$1``')
+                    .replace(/\$([^\$\n]+?)\$/g, '`$1`')
+                    .replace(/```math\s*\n([\s\S]*?)\n```/g, '``$1``')
+                    .replace(/\\\(([\s\S]*?)\\\)/g, '`$1`');
+            }
+            
+            autoDetectTypeFromContent(block) {
+                const hasChoices = /\[CHOICES\]/i.test(block);
+                const hasAnswer = /\[ANSWER\]/i.test(block);
+                const hasGaps = /\[GAPS/i.test(block) || /\[BLANK\]/i.test(block);
+                const hasMatching = /\[MATCHING_PAIRS\]/i.test(block) || /^\s*.+\s*\|\s*.+$/m.test(block);
+                const starCount = (block.match(/^\s*\*/gm) || []).length;
+                
+                // Check for True/False questions
+                const isTrueFalse = this.isTrueFalseQuestion(block);
+                if (isTrueFalse) return this.QuestionType.MCQ;
+                
+                if (hasMatching) return this.QuestionType.MATCHING;
+                if (hasGaps) return this.QuestionType.GAP_TEXT;
+                if (hasChoices && starCount > 1) return this.QuestionType.MRQ;
+                if (hasChoices && starCount === 1) return this.QuestionType.MCQ;
+                if (hasChoices && starCount === 0) return this.QuestionType.OQ;
+                if (hasAnswer) {
+                    const ans = (block.match(/\[ANSWER\]([\s\S]*)$/i) || [, ''])[1].trim();
+                    if (/\|/.test(ans)) return this.QuestionType.INPUT_BOX;
+                    return ans.split(/\s+/).length > 12 ? this.QuestionType.FRQ : this.QuestionType.STRING;
+                }
+                return this.QuestionType.STRING;
+            }
+            
+            isTrueFalseQuestion(block) {
+                const stem = (block.match(/\[STEM\]([\s\S]*?)(?=\[|$)/i) || [, ''])[1].trim();
+                const trueFalsePatterns = [
+                    /^.*صواب\s+أم\s+خطأ.*$/i,
+                    /^.*خطأ\s+أم\s+صواب.*$/i,
+                    /^.*true\s+or\s+false.*$/i,
+                    /^.*false\s+or\s+true.*$/i,
+                    /^.*صحيح\s+أم\s+خطأ.*$/i,
+                    /^.*خطأ\s+أم\s+صحيح.*$/i
+                ];
+                return trueFalsePatterns.some(pattern => pattern.test(stem));
+            }
+            
+            organizeTrueFalseChoices(choices, originalAnswers) {
+                const trueChoices = choices.filter(choice => 
+                    /^(صواب|true|صحيح)$/i.test(choice.trim())
+                );
+                const falseChoices = choices.filter(choice => 
+                    /^(خطأ|false|غلط)$/i.test(choice.trim())
+                );
+                
+                // Always put True/صواب first, then False/خطأ
+                return [...trueChoices, ...falseChoices];
+            }
+
+            normalizeOneBlock(block) {
+                // Ensure [STEM]
+                if (!/\[STEM\]/i.test(block)) {
+                    const lines = block.split('\n').filter(l => l.trim() !== '');
+                    const first = lines.shift() || '';
+                    block = `[STEM]\n${first}\n` + (lines.length ? lines.join('\n') : '');
+                }
+                // Ensure type header
+                if (!/^type:\s*/im.test(block)) {
+                    const detected = this.autoDetectTypeFromContent(block);
+                    block = `type: ${detected}\n` + block;
+                }
+                return block.trim();
+            }
+
+            postProcessAIFormatted(text) {
+                let s = this.cleanFormattedText(text || '');
+                s = this.convertDollarMathToBackticks(s);
+                s = s.replace(/\n---\n(?:\n---\n)+/g, '\n---\n');
+                let blocks = s.split(/\n---\n/).map(b => b.trim()).filter(Boolean);
+                blocks = blocks.map(b => this.normalizeOneBlock(b));
+                return blocks.join('\n---\n');
+            }
+            async formatTextWithAI(rawText, apiKey) {
+                const prompt = this.buildAdvancedFormattingPrompt(rawText);
+                const endpoint = this.config.api.geminiEndpoint + encodeURIComponent(apiKey);
+                this.aiAbortController?.abort();
+                this.aiAbortController = new AbortController();
+                const timer = setTimeout(() => this.aiAbortController.abort(), 30000);
+                try {
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                            generationConfig: { temperature: 0.1, topK: 40, topP: 0.95, maxOutputTokens: 4096 }
+                        }),
+                        signal: this.aiAbortController.signal
+                    });
+                    clearTimeout(timer);
+                    if (!response.ok) {
+                        const txt = await response.text().catch(() => '');
+                        throw new Error(`API Error ${response.status}: ${txt || response.statusText}`);
+                    }
+                    const data = await response.json();
+                    if (data?.promptFeedback?.blockReason) {
+                        throw new Error(`Blocked by safety: ${data.promptFeedback.blockReason}`);
+                    }
+                    const text = data?.candidates?.[0]?.content?.parts?.find(p => typeof p.text === 'string')?.text || '';
+                    return text;
+                } catch (error) {
+                    this.logger.error('API call failed:', error);
+                    throw error;
+                }
+            }
+            
+            async smartAnalyze() {
+                this.logger.info("Starting smart analysis...");
+                const inputEl = document.getElementById('questionInput');
+                const rawText = inputEl.value;
+                if (!rawText.trim()) {
+                    this.showMessage(this.language === this.Language.ARABIC ? 'الرجاء إدخال نص للتحليل' : 'Please enter text to analyze', 'warning');
+                    return;
+                }
+                this.setLoading(true);
+                try {
+                    let textToParse = this.convertDollarMathToBackticks(rawText);
+                    
+                    const dummyIds = this.extractDummyIds(textToParse);
+                    let idMapping = {};
+                    if (dummyIds.length > 0) {
+                        idMapping = await this.promptForOfficialIds(dummyIds);
+                        if (!idMapping) {
+                            this.showMessage(this.language === this.Language.ARABIC ? 'تم إلغاء العملية' : 'Operation cancelled', 'warning');
+                            this.setLoading(false);
+                            return;
+                        }
+                    }
+
+                    const questionBlocks = textToParse.trim().split(/\n---\n/);
+
+                    this.questions = questionBlocks.filter(block => block.trim()).map((block, index) => {
+                        const q = this._parseQuestionBlock(block, index);
+                        if (idMapping[q.metadata.id]) q.metadata.id = idMapping[q.metadata.id];
+                        return q;
+                    });
+
+                    this.updateUIAfterChange(this.language === this.Language.ARABIC ? 'تم التحليل بنجاح.' : 'Analysis successful.');
+                    this.logger.info(`Analysis complete. Found ${this.questions.length} questions.`);
+
+                } catch (error) {
+                    this.logger.error("Smart Analysis Error:", error);
+                    this.showMessage(`${this.language === this.Language.ARABIC ? 'حدث خطأ أثناء التحليل: ' : 'Error during analysis: '}${error.message}`, 'error');
+                } finally {
+                    this.setLoading(false);
+                }
+            }
+            _parseQuestionBlock(block, index) {
+                const lines = block.trim().split('\n');
+                const metadata = {};
+                let contentStartIndex = 0;
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    const metaMatch = line.match(/^([a-z_]+):\s*(.*)/i);
+                    if (metaMatch && !line.startsWith('[')) {
+                        metadata[metaMatch[1].trim().toLowerCase()] = metaMatch[2].trim();
+                    } else {
+                        contentStartIndex = i;
+                        break;
+                    }
+                }
+                if (contentStartIndex === lines.length && Object.keys(metadata).length > 0) {
+                    contentStartIndex = 0;
+                    for (const key in metadata) { delete metadata[key]; }
+                }
+                const contentStr = lines.slice(contentStartIndex).join('\n').trim();
+                const metaHeader = lines.slice(0, contentStartIndex).join('\n') + (contentStartIndex > 0 ? '\n' : '');
+                metadata.id = metadata.id || `temp_${Date.now()}_${index}`;
+                const questionData = {
+                    metadata: metadata,
+                    statement: null,
+                    parts: [],
+                    _metaHeader: metaHeader,
+                    _contentBlock: contentStr,
+                    _editing: false
+                };
+                if (/\[STATEMENT/i.test(contentStr) && /\[PART\]/i.test(contentStr)) {
+                    const statementMatch = contentStr.match(/\[STATEMENT\]([\s\S]*?)(?=\[PART\])/i);
+                    if (statementMatch) { questionData.statement = statementMatch[1].trim(); }
+                    const partRegex = /\[PART\]([\s\S]*?)(?=\[PART\]|$)/gi;
+                    const partMatches = contentStr.match(partRegex);
+                    if (partMatches) {
+                        questionData.parts = partMatches.map(partMatch => {
+                            const partContent = partMatch.replace(/^\[PART\]/i, '').trim();
+                            return this._parsePartWithTags(partContent, metadata);
+                        });
+                    }
+                    return questionData;
+                }
+                const hasTags = /\[(STEM|CHOICES|ANSWER|GAPS|MATCHING_PAIRS)\]/i.test(contentStr);
+                if (hasTags) {
+                    questionData.parts.push(this._parsePartWithTags(contentStr, metadata));
+                    return questionData;
+                }
+                questionData.parts.push(this._parsePartSimple(contentStr, metadata));
+                return questionData;
+            }
+            _parsePartWithTags(partBlock, globalMetadata) {
+                const partMetadata = { ...globalMetadata };
+                const content = {};
+                const mainTags = ['STEM', 'CHOICES', 'ANSWER', 'GAPS', 'MATCHING_PAIRS'];
+                let remainingBlock = partBlock.trim();
+                const lines = remainingBlock.split('\n');
+                let contentStartIndex = 0;
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    const metaMatch = line.match(/^([a-z_]+):\s*(.*)/i);
+                    if (metaMatch && !line.startsWith('[')) {
+                        partMetadata[metaMatch[1].trim().toLowerCase()] = metaMatch[2].trim();
+                        contentStartIndex = i + 1;
+                    } else {
+                        break;
+                    }
+                }
+                remainingBlock = lines.slice(contentStartIndex).join('\n');
+                const tagPositions = [];
+                mainTags.forEach(tag => {
+                    const regex = new RegExp(`\\[${tag}\\]`, 'gi');
+                    let match;
+                    while ((match = regex.exec(remainingBlock)) != null) {
+                        tagPositions.push({ tag: tag, index: match.index });
+                    }
+                });
+                tagPositions.sort((a, b) => a.index - b.index);
+                for (let i = 0; i < tagPositions.length; i++) {
+                    const currentTag = tagPositions[i];
+                    const nextTag = tagPositions[i + 1];
+                    const start = currentTag.index + `[${currentTag.tag}]`.length;
+                    const end = nextTag ? nextTag.index : remainingBlock.length;
+                    const tagContent = remainingBlock.substring(start, end).trim();
+                    content[currentTag.tag] = tagContent;
+                }
+                const part = {
+                    type: (partMetadata.type || globalMetadata.type || this.QuestionType.UNKNOWN),
+                    stem: content.STEM || '',
+                    metadata: partMetadata
+                };
+                this._processTaggedContent(part, content);
+                return part;
+            }
+            _processTaggedContent(part, content) {
+                const stripBullet = (s) => s.replace(/^\s*(?:\d+[.)]|[A-Za-z\u0621-\u064A][.)]|[-•])\s+/, '');
+                switch(part.type) {
+                    case this.QuestionType.OQ:
+                    case this.QuestionType.MCQ:
+                    case this.QuestionType.MRQ: {
+                        const lines = (content.CHOICES || '').split('\n');
+                        part.choices = [];
+                        const answers = [];
+                        lines.forEach((rawLine) => {
+                            let line = rawLine.trim();
+                            if (!line) return;
+                            const isCorrect = line.startsWith('*');
+                            if (isCorrect || line.startsWith('-')) line = line.slice(1).trim();
+                            line = stripBullet(line);
+                            const idx = part.choices.length;
+                            part.choices.push(line);
+                            if (isCorrect) answers.push(idx);
+                        });
+                        
+                        if (this.isTrueFalseQuestion(`[STEM]\n${part.stem}`)) {
+                            part.choices = this.organizeTrueFalseChoices(part.choices, answers);
+                            if (part.type !== this.QuestionType.OQ) {
+                                const trueIndex = part.choices.findIndex(choice => 
+                                    /^(صواب|true)$/i.test(choice.trim())
+                                );
+                                const falseIndex = part.choices.findIndex(choice => 
+                                    /^(خطأ|false)$/i.test(choice.trim())
+                                );
+                                
+                                if (trueIndex !== -1 && falseIndex !== -1) {
+                                    const originalTrueAnswer = answers.find(idx => 
+                                        /^(صواب|true)$/i.test(lines[idx]?.replace(/^[*-]\s*/, '').trim())
+                                    );
+                                    part.answer = part.type === this.QuestionType.MCQ ? 
+                                        (originalTrueAnswer !== undefined ? trueIndex : falseIndex) : 
+                                        [originalTrueAnswer !== undefined ? trueIndex : falseIndex];
+                                }
+                            }
+                        } else {
+                            if (part.type !== this.QuestionType.OQ) {
+                                part.answer = part.type === this.QuestionType.MCQ ? answers[0] : answers;
+                            }
+                        }
+                        break;
+                    }
+                    case this.QuestionType.MATCHING: {
+                        const pairs = (content.MATCHING_PAIRS || '').split('\n')
+                            .map(line => line.trim())
+                            .filter(Boolean)
+                            .map(line => line.split('|').map(item => item.trim()))
+                            .filter(arr => arr.length === 2 && arr[0] && arr[1]);
+                        part.pairs = pairs;
+                        part.group1 = pairs.map(p => p[0]);
+                        part.group2 = pairs.map(p => p[1]);
+                        part.answer = pairs.map((_, i) => [i, i]);
+                        break;
+                    }
+                    case this.QuestionType.GAP_TEXT: {
+                        part.answers = (content.GAPS || '').split('\n').map(v => v.trim()).filter(Boolean).map((val, i) => ({ value: val, order: i + 1 }));
+                        break;
+                    }
+                    case this.QuestionType.STRING:
+                    case this.QuestionType.FRQ:
+                    case this.QuestionType.FRQ_AI:
+                        part.answer = (content.ANSWER || '').trim();
+                        break;
+                    case this.QuestionType.INPUT_BOX: {
+                        const answerParts = (content.ANSWER || '|').split('|');
+                        part.answer = { value: (answerParts[0] || '').trim(), unit: (answerParts[1] || '').trim() };
+                        break;
+                    }
+                }
+            }
+            _parsePartSimple(text, metadata) {
+                const stripBullet = (s) => s.replace(/^\s*(?:\d+[.)]|[A-Za-z\u0621-\u064A][.)]|[-•])\s+/, '');
+                const type = (metadata.type || this.activeQuestionType).toLowerCase();
+                let part = { type: type, confidence: 0.85, metadata: metadata };
+                const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+                if (lines.length === 0) {
+                    part.stem = text;
+                    part.confidence = 0.1;
+                    part.choices = [];
+                    part.answer = '';
+                    part.answers = [];
+                    part.group1 = [];
+                    part.group2 = [];
+                    return part;
+                }
+                part.stem = lines[0].trim();
+                const remainingLines = lines.slice(1);
+                switch(type) {
+                    case this.QuestionType.OQ:
+                    case this.QuestionType.MCQ:
+                    case this.QuestionType.MRQ: {
+                        part.choices = [];
+                        const answers = [];
+                        remainingLines.forEach((line) => {
+                            let choiceText = line.trim();
+                            if (!choiceText) return;
+                            const isCorrect = choiceText.startsWith('*');
+                            if (isCorrect || choiceText.startsWith('-')) choiceText = choiceText.slice(1).trim();
+                            choiceText = stripBullet(choiceText);
+                            const idx = part.choices.length;
+                            part.choices.push(choiceText);
+                            if (isCorrect) answers.push(idx);
+                        });
+                        
+                        if (this.isTrueFalseQuestion(`[STEM]\n${part.stem}`)) {
+                            part.choices = this.organizeTrueFalseChoices(part.choices, answers);
+                            const trueIndex = part.choices.findIndex(choice => 
+                                /^(صواب|true|صحيح)$/i.test(choice.trim())
+                            );
+                            const falseIndex = part.choices.findIndex(choice => 
+                                /^(خطأ|false|غلط)$/i.test(choice.trim())
+                            );
+                            
+                            if (trueIndex !== -1 && falseIndex !== -1) {
+                                const originalTrueAnswer = answers.find(idx => 
+                                    /^(صواب|true|صحيح)$/i.test(remainingLines[idx]?.replace(/^[*-]\s*/, '').trim())
+                                );
+                                if (type === this.QuestionType.MCQ) {
+                                    part.answer = originalTrueAnswer !== undefined ? trueIndex : falseIndex;
+                                } else if (type === this.QuestionType.MRQ) {
+                                    part.answer = [originalTrueAnswer !== undefined ? trueIndex : falseIndex];
+                                }
+                            }
+                        } else {
+                            if (type === this.QuestionType.MCQ) part.answer = answers[0];
+                            else if (type === this.QuestionType.MRQ) part.answer = answers;
+                        }
+                        break;
+                    }
+                    case this.QuestionType.STRING:
+                    case this.QuestionType.FRQ:
+                    case this.QuestionType.FRQ_AI:
+                        part.answer = remainingLines.join('\n').trim();
+                        break;
+                    case this.QuestionType.GAP_TEXT: {
+                        part.answers = remainingLines.map((val, i) => ({ value: val, order: i + 1 }));
+                        break;
+                    }
+                    case this.QuestionType.INPUT_BOX: {
+                        const answerLine = remainingLines.join(' ').trim();
+                        const answerParts = answerLine.split('|');
+                        part.answer = { value: (answerParts[0] || '').trim(), unit: (answerParts[1] || '').trim() };
+                        break;
+                    }
+                    case this.QuestionType.MATCHING: {
+                        const pairs = remainingLines
+                            .map(line => line.split('|').map(item => item.trim()))
+                            .filter(arr => arr.length === 2 && arr[0] && arr[1]);
+                        part.pairs = pairs;
+                        part.group1 = pairs.map(p => p[0]);
+                        part.group2 = pairs.map(p => p[1]);
+                        part.answer = pairs.map((_, i) => [i, i]);
+                        break;
+                    }
+                }
+                return part;
+            }
+            async enhanceWithAI() {
+                const apiKey = document.getElementById('apiKey').value.trim();
+                if (!apiKey) {
+                    this.showMessage(this.language === this.Language.ARABIC ? 'الرجاء إدخال مفتاح Gemini API أولاً' : 'Please enter Gemini API key first', 'warning');
+                    return;
+                }
+                const rawText = document.getElementById('questionInput').value.trim();
+                if (!rawText) {
+                    this.showMessage(this.language === this.Language.ARABIC ? 'الرجاء إدخال النص أولاً' : 'Please enter text first', 'warning');
+                    return;
+                }
+                if (this.isAIProcessing) {
+                    this.showMessage(this.language === this.Language.ARABIC ? 'جاري المعالجة بالذكاء الاصطناعي...' : 'AI processing in progress...', 'warning');
+                    return;
+                }
+                this.isAIProcessing = true;
+                const enhanceBtn = document.getElementById('aiEnhanceBtn');
+                const originalText = enhanceBtn.innerHTML;
+                enhanceBtn.innerHTML = `<div class="spinner"></div> ${this.language === this.Language.ARABIC ? 'جاري التنسيق...' : 'Formatting...'}`;
+                enhanceBtn.disabled = true;
+                try {
+                    const aiText = await this.formatTextWithAI(rawText, apiKey);
+                    const finalFormatted = this.postProcessAIFormatted(aiText || rawText);
+                    if (finalFormatted) {
+                        document.getElementById('questionInput').value = finalFormatted;
+                        this.showMessage(this.language === this.Language.ARABIC ? 'تم تنسيق النص بنجاح! يمكنك الآن تحليله.' : 'Text formatted successfully! You can now analyze it.', 'success');
+                    } else {
+                        this.showMessage(this.language === this.Language.ARABIC ? 'فشل في تنسيق النص. حاول مرة أخرى.' : 'Failed to format text. Please try again.', 'error');
+                    }
+                } catch (error) {
+                    this.logger.error('AI Formatting Error:', error);
+                    this.showMessage(`${this.language === this.Language.ARABIC ? 'خطأ في التنسيق: ' : 'Formatting error: '}${error.message}`, 'error');
+                } finally {
+                    this.isAIProcessing = false;
+                    enhanceBtn.innerHTML = originalText;
+                    enhanceBtn.disabled = false;
+                }
+            }
+            // ***************************************************************
+            // ** HTML & JSON TRANSFORMATION LOGIC **
+            // ***************************************************************
+            convertToJSON() {
+                if (this.questions.length === 0) {
+                    this.showMessage(this.language === this.Language.ARABIC ? 'لا توجد أسئلة لتحويلها.' : 'No questions to convert.', 'warning');
+                    return;
+                }
+                // Validation check for empty choices and required AI template IDs
+                for (let i = 0; i < this.questions.length; i++) {
+                    const q = this.questions[i];
+                    for (let j = 0; j < q.parts.length; j++) {
+                        const p = q.parts[j];
+                        const needsChoices = [this.QuestionType.OQ, this.QuestionType.MCQ, this.QuestionType.MRQ].includes(p.type);
+                        if (needsChoices && (!p.choices || p.choices.length === 0)) {
+                            const errorMsg = `Question ${i + 1}, Part ${j + 1} (${p.type}) must have choices.`;
+                            const errorMsgAr = `السؤال ${i + 1}, الجزء ${j + 1} (من نوع ${p.type}) يجب أن يحتوي على اختيارات.`;
+                            this.showMessage(this.language === this.Language.ARABIC ? errorMsgAr : errorMsg, 'error');
+                            return; // Stop the conversion
+                        }
+                        if (p.type === this.QuestionType.FRQ_AI && !p.metadata.ai_template_id) {
+                             const errorMsg = `Question ${i + 1}, Part ${j + 1} (frq_ai) requires an AI Template ID.`;
+                             const errorMsgAr = `السؤال ${i + 1}, الجزء ${j + 1} (من نوع frq_ai) يتطلب معرف قالب AI.`;
+                             this.showMessage(this.language === this.Language.ARABIC ? errorMsgAr : errorMsg, 'error');
+                             return;
+                        }
+                    }
+                }
+
+                const advancedFormatQuestions = this.questions.map((q, index) => this.transformToAdvancedFormat(q, index));
+                const jsonOutput = document.getElementById('jsonOutput');
+                this.jsonForExport = JSON.stringify(advancedFormatQuestions.length === 1 ? advancedFormatQuestions[0] : advancedFormatQuestions, null, 2);
+                this.setSafeHTML(jsonOutput, this.syntaxHighlight(this.jsonForExport));
+                jsonOutput.style.display = 'block';
+                document.getElementById('copyBtn').disabled = false;
+                document.getElementById('downloadBtn').disabled = this.questions.length > 1;
+                document.getElementById('downloadZipBtn').disabled = this.questions.length === 0;
+                document.getElementById('csvBtn').disabled = false;
+                this.showMessage(this.language === this.Language.ARABIC ? 'تم تحويل الأسئلة إلى الصيغة المتقدمة بنجاح' : 'Successfully converted to advanced format', 'success');
+            }
+            transformToAdvancedFormat(question, index) {
+                const meta = question.metadata;
+                const csvRow = this.csvData[index];
+                const lang = meta.language || this.customization.lang;
+
+                const csvId = (csvRow && csvRow['Question Id']) ? parseInt(csvRow['Question Id'], 10) : NaN;
+                
+                const finalId = !isNaN(csvId) ? csvId : (parseInt(meta.id, 10) || (Date.now() + index));
+
+                const finalMetadata = {
+                    id: finalId,
+                    ...(!isNaN(finalId) && { mapped_id: finalId }),
+                    category: this.customization.category,
+                    language: this.customization.lang,
+                    country: this.customization.country,
+                    dialect: this.language === this.Language.ARABIC ? ['Modern_standard'] : ["american", "british"],
+                    source_id: { value: meta.source_id || this.config.defaults.sourceId, page_number: null },
+                    description: (question.parts[0]?.stem || question.statement || '').substring(0, 150),
+                    example_id: null,
+                    has_example: false,
+                    parts_count: question.parts.length,
+                    instances_count: 1,
+                    publication_date: new Date().toISOString(),
+                    schema_version: "1.0.0"
+                };
+
+                return {
+                    parts: question.parts.map((p, partIndex) => this._transformPart(p, meta, partIndex)),
+                    statement: question.statement ? this.processTextForHtml(question.statement, lang) : null,
+                    instance_number: 1,
+                    metadata: finalMetadata
+                };
+            }
+            _transformPart(part, globalMetadata, index) {
+                const lang = globalMetadata.language || this.customization.lang;
+                let processedStem = part.stem;
+                if ((part.type === this.QuestionType.MCQ || part.type === this.QuestionType.MRQ) && processedStem && processedStem.trim().endsWith('.')) {
+                    const spaceSpan = '<span data-node-type="blank-line" data-node-variation="space">&nbsp;</span>';
+                    const trimmedStem = processedStem.trim();
+                    processedStem = trimmedStem.slice(0, -1) + spaceSpan + '.';
+                }
+                const partJson = {
+                    n: index + 1,
+                    type: this.questionTypeConfigs[part.type]?.jsonType || part.type,
+                    subtype: null,
+                    standalone: false,
+                    stem: this.processTextForHtml(processedStem, lang)
+                };
+                switch (part.type) {
+                    case this.QuestionType.MCQ:
+                    case this.QuestionType.MRQ:
+                        Object.assign(partJson, this._transformMCQ_MRQ_Part(part, lang));
+                        break;
+                    case this.QuestionType.OQ:
+                        Object.assign(partJson, this._transformOQPart(part, lang));
+                        break;
+                    case this.QuestionType.MATCHING:
+                        Object.assign(partJson, this._transformMatchingPart(part, lang));
+                        break;
+                    case this.QuestionType.GAP_TEXT:
+                        Object.assign(partJson, this._transformGapTextPart(part, lang));
+                        break;
+                    case this.QuestionType.STRING:
+                        Object.assign(partJson, this._transformStringPart(part, globalMetadata, lang));
+                        break;
+                    case this.QuestionType.FRQ:
+                        Object.assign(partJson, this._transformFRQPart(part, lang));
+                        break;
+                    case this.QuestionType.FRQ_AI:
+                        Object.assign(partJson, this._transformFRQ_AIPart(part, globalMetadata, lang));
+                        break;
+                    case this.QuestionType.INPUT_BOX:
+                        Object.assign(partJson, this._transformInputBoxPart(part));
+                        break;
+                    default:
+                        partJson.choices = [];
+                }
+                return partJson;
+            }
+            _transformMCQ_MRQ_Part(part, lang) {
+                const correctAnswers = new Set(Array.isArray(part.answer) ? part.answer : [part.answer]);
+                return {
+                    choices: (part.choices || []).map((choice, i) => ({
+                        type: correctAnswers.has(i) ? 'key' : 'distractor',
+                        html_content: this.processTextForHtml(choice, lang),
+                        values: [],
+                        unit: null,
+                        index: i,
+                        fixed_order: i + 1,
+                        last_order: false
+                    }))
+                };
+            }
+            _transformOQPart(part, lang) {
+                const itemsToShuffle = (part.choices || []).map((choice, i) => ({
+                    text: choice,
+                    originalIndex: i
+                }));
+
+                const shuffledItems = this._shuffleArray(itemsToShuffle);
+
+                return {
+                    direction: "vertical",
+                    choices: shuffledItems.map((item, i) => ({
+                        type: 'distractor',
+                        html_content: this.processTextForHtml(item.text, lang),
+                        correct_order: item.originalIndex + 1,
+                        values: [],
+                        unit: null,
+                        index: i,
+                        fixed_order: i + 1,
+                        last_order: false
+                    }))
+                };
+            }
+            _transformMatchingPart(part, lang) {
+                const choices = [];
+                const group1Items = (part.group1 || []);
+                const group1Length = group1Items.length;
+
+                group1Items.forEach((item, i) => {
+                    choices.push({ 
+                        type: 'distractor', 
+                        html_content: this.processTextForHtml(item, lang),
+                        group: 1, 
+                        correct_order: i + 1, 
+                        values: [], 
+                        unit: null, 
+                        index: i, 
+                        fixed_order: i + 1, 
+                        last_order: false 
+                    });
+                });
+
+                const group2ItemsToShuffle = (part.group2 || []).map((item, i) => ({
+                    text: item,
+                    originalIndex: i
+                }));
+                
+                const shuffledGroup2Items = this._shuffleArray(group2ItemsToShuffle);
+                
+                shuffledGroup2Items.forEach((item, i) => {
+                    choices.push({ 
+                        type: 'distractor', 
+                        html_content: this.processTextForHtml(item.text, lang),
+                        group: 2, 
+                        correct_order: item.originalIndex + 1,
+                        values: [], 
+                        unit: null, 
+                        index: i + group1Length, 
+                        fixed_order: i + 1 + group1Length, 
+                        last_order: false 
+                    });
+                });
+
+                return { choices };
+            }
+            _transformGapTextPart(part, lang) {
+                const stem_html_gap = '<span data-node-type="blank-line" data-node-variation="gap"> </span>';
+                const processedStem = (part.stem || '').replace(/\[BLANK\]|_{3,}/g, stem_html_gap);
+                return {
+                    gap_text_keys: (part.answers || []).map(ans => ({ value: ans.value, correct_order: ans.order })),
+                    stem: this.processTextForHtml(processedStem, lang),
+                    choices: []
+                };
+            }
+            _transformStringPart(part, globalMetadata, lang) {
+                const result = {
+                    choices: null,
+                    answer: [this.processTextForHtml(part.answer, lang)]
+                };
+                const aiTemplateId = part.metadata.ai_template_id || globalMetadata.ai_template_id;
+                if (aiTemplateId) {
+                    result.ai = { "ai_template_id": aiTemplateId };
+                }
+                return result;
+            }
+            _transformFRQPart(part, lang) {
+                return { choices: [], answer: this.processTextForHtml(part.answer, lang) };
+            }
+            _transformFRQ_AIPart(part, globalMetadata, lang) {
+                const result = {
+                    choices: [],
+                    answer: this.processTextForHtml(part.answer, lang)
+                };
+                const aiTemplateId = part.metadata.ai_template_id || globalMetadata.ai_template_id;
+                if (aiTemplateId) {
+                    result.ai = { "ai_template_id": aiTemplateId };
+                }
+                return result;
+            }
+            _transformInputBoxPart(part) {
+                const answer = { 
+                    value: part.answer.value, 
+                    unit: part.answer.unit || null,
+                    constrains: { type: "integer" } 
+                };
+                return { choices: [], answer };
+            }
+            // ***************************************************************
+            // ** UI, ACTIONS & UTILITIES **
+            // ***************************************************************
+            
+            _shuffleArray(array) {
+                let currentIndex = array.length, randomIndex;
+                while (currentIndex > 0) {
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex--;
+                    [array[currentIndex], array[randomIndex]] = [
+                        array[randomIndex], array[currentIndex]];
+                }
+                return array;
+            }
+            
+            clearAll() {
+                document.getElementById('questionInput').value = '';
+                this.questions = []; this.jsonForExport = ''; this.csvData = [];
+                localStorage.removeItem('aiq_csv_data');
+                localStorage.removeItem('aiq_ai_template_ids');
+                this.updateUIAfterChange();
+                const jsonOutput = document.getElementById('jsonOutput');
+                jsonOutput.style.display = 'none'; jsonOutput.innerHTML = '';
+                document.getElementById('copyBtn').disabled = true;
+                document.getElementById('downloadBtn').disabled = true;
+                document.getElementById('downloadZipBtn').disabled = true;
+                document.getElementById('csvBtn').disabled = true;
+                this.showMessage(this.language === this.Language.ARABIC ? 'تم مسح كل شيء' : 'Everything cleared', 'success');
+                this.logger.info("All data has been cleared.");
+            }
+            
+            processTextForHtml(text, language, questionId, partIndex, fieldType, choiceIndex = -1) {
+                if (!text) return '';
+                const direction = language === this.Language.ARABIC ? ' dir="rtl"' : '';
+                
+                let processedText = text.replace(/_{5,}/g, '<span data-node-type="blank-line" data-node-variation="space">&nbsp;</span>');
+
+                const parts = processedText.split(/(``[\s\S]*?``|`[\s\S]*?`|<span data-node-type="blank-line" data-node-variation="gap"> <\/span>|<span data-node-type="blank-line" data-node-variation="space">&nbsp;<\/span>)/);
+                let finalHtmlContent = "";
+                
+                let mathFieldIndex = 0;
+                for (const part of parts) {
+                    if (!part) continue;
+                    if (part.startsWith('``') && part.endsWith('``')) {
+                        finalHtmlContent += this.createMathField(part.slice(2, -2), language, true, questionId, partIndex, fieldType, choiceIndex, mathFieldIndex++);
+                    } else if (part.startsWith('`') && part.endsWith('`')) {
+                        finalHtmlContent += this.createMathField(part.slice(1, -1), language, false, questionId, partIndex, fieldType, choiceIndex, mathFieldIndex++);
+                    } else if (part.includes('data-node-type="blank-line"')) {
+                        finalHtmlContent += part;
+                    } else {
+                        finalHtmlContent += `<span style="white-space: pre-wrap;">${DOMPurify.sanitize(part)}</span>`;
+                    }
+                }
+                return `<p class="LexicalTheme__paragraph"${direction}>${finalHtmlContent}</p>`;
+            }
+            
+            createMathField(equation, language, forceEn = false, questionId, partIndex, fieldType, choiceIndex, mathFieldIndex) {
+                const isArabic = language === this.Language.ARABIC && !forceEn;
+                let latexValue = equation.replace(/\[BLANK\]/g, '\\textBlank');
+                if (isArabic && this.config.flags.convertArabicLatex) {
+                    latexValue = this.convertToArabicLatex(latexValue);
+                }
+                const localeAttrs = isArabic ? ' locale="ar" lang="ar"' : ' locale="en"';
+                const processedValue = latexValue.replace(/"/g, '&quot;');
+
+                const dataAttrs = `data-question-id="${questionId}" 
+                                     data-part-index="${partIndex}" 
+                                     data-field-type="${fieldType}" 
+                                     data-choice-index="${choiceIndex}"
+                                     data-math-index="${mathFieldIndex}"`;
+                
+                return `<span class="LexicalTheme__math--inline" data-node-type="math" data-node-variation="inline"><math-field ${dataAttrs} default-mode="inline-math" value="${processedValue}"${localeAttrs}></math-field></span>`;
+            }
+
+            handleMathFieldInput(event) {
+                const mathField = event.target;
+                const questionId = mathField.dataset.questionId;
+                const partIndex = parseInt(mathField.dataset.partIndex, 10);
+                const fieldType = mathField.dataset.fieldType;
+                const choiceIndex = parseInt(mathField.dataset.choiceIndex, 10);
+                const mathFieldIndex = parseInt(mathField.dataset.mathIndex, 10);
+                const newLatexValue = mathField.value;
+
+                const question = this.questions.find(q => q.metadata.id === questionId);
+                if (!question) return;
+
+                let partToUpdate;
+                if (partIndex === -1) { 
+                    partToUpdate = question;
+                } else {
+                    partToUpdate = question.parts[partIndex];
+                }
+                
+                if (!partToUpdate) return;
+                
+                const updateRawText = (originalText) => {
+                    if (isNaN(mathFieldIndex) || !originalText) return originalText;
+
+                    const regex = /(``[\s\S]*?``|`[\s\S]*?`)/g;
+                    let currentMathIndex = 0;
+                    
+                    const newText = originalText.replace(regex, (match) => {
+                        if (currentMathIndex === mathFieldIndex) {
+                            currentMathIndex++;
+                            const delimiter = match.startsWith('``') ? '``' : '`';
+                            return `${delimiter}${newLatexValue}${delimiter}`;
+                        }
+                        currentMathIndex++;
+                        return match;
+                    });
+                    
+                    return newText;
+                };
+
+                switch (fieldType) {
+                    case 'statement':
+                        partToUpdate.statement = updateRawText(partToUpdate.statement);
+                        break;
+                    case 'stem':
+                        partToUpdate.stem = updateRawText(partToUpdate.stem);
+                        break;
+                    case 'choice':
+                        if (choiceIndex > -1 && Array.isArray(partToUpdate.choices) && partToUpdate.choices[choiceIndex]) {
+                           partToUpdate.choices[choiceIndex] = updateRawText(partToUpdate.choices[choiceIndex]);
+                        }
+                        break;
+                    case 'answer':
+                          partToUpdate.answer = updateRawText(partToUpdate.answer);
+                          break;
+                }
+                
+                if (question.parts[partIndex]) {
+                    const part = question.parts[partIndex];
+                    let newContentBlock = `[STEM]\n${part.stem}\n`;
+                    if (part.choices && part.choices.length > 0) {
+                        const correctAnswers = new Set(Array.isArray(part.answer) ? part.answer : [part.answer]);
+                        const choicesText = part.choices.map((c, i) => `${correctAnswers.has(i) ? '*' : '-'} ${c}`).join('\n');
+                        newContentBlock += `[CHOICES]\n${choicesText}`;
+                    }
+                     if (part.answer && (part.type === 'string' || part.type === 'frq')) {
+                        newContentBlock += `\n[ANSWER]\n${part.answer}`;
+                    }
+                    question._contentBlock = newContentBlock;
+                }
+
+                if (document.getElementById('jsonOutput').style.display === 'block') {
+                    this.convertToJSON();
+                }
+                
+                this.logger.info(`Updated math field for Q:${questionId}, Part:${partIndex}, Type:${fieldType}`);
+            }
+
+            convertToArabicLatex(equation) {
+                const commands = equation.match(/\\\w+/g) || [];
+                commands.forEach((command, i) => { equation = equation.replace(command, `__CMD_PLACEHOLDER_${i}__`); });
+                const parts = equation.split(' ');
+                const processedParts = parts.map(part => this.config.ARABIC_LATEX_MAP[part] || part);
+                equation = processedParts.join(' ');
+                commands.forEach((command, i) => { equation = equation.replace(`__CMD_PLACEHOLDER_${i}__`, command); });
+                return equation;
+            }
+            displayResults() {
+                const previewContainer = document.getElementById('questionsPreview');
+                previewContainer.innerHTML = '';
+                const placeholder = document.getElementById('preview-placeholder');
+                if (this.questions.length === 0) {
+                    if (!placeholder) {
+                        const newPlaceholder = document.createElement('div');
+                        newPlaceholder.id = 'preview-placeholder';
+                        newPlaceholder.style.cssText = "text-align: center; color: #6b7280; padding: 40px; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;";
+                        previewContainer.appendChild(newPlaceholder);
+                    }
+                    const visiblePlaceholder = document.getElementById('preview-placeholder');
+                    visiblePlaceholder.style.display = 'flex';
+                    const msg = this.language === this.Language.ARABIC ? 'ستظهر معاينة الأسئلة هنا بعد التحليل' : 'Questions preview will appear here after analysis';
+                    this.setSafeHTML(visiblePlaceholder, `<div style="font-size: 3em; margin-bottom: 20px;">📋</div><p>${msg}</p>`);
+                    return;
+                }
+                if (placeholder) placeholder.style.display = 'none';
+                this.questions.forEach((q, index) => {
+                    const questionDiv = document.createElement('div');
+                    questionDiv.className = 'question-preview';
+                    questionDiv.dataset.id = q.metadata.id;
+                    const html = q._editing ? this._renderEditView(q) : this._renderReadOnlyView(q, index);
+                    this.setSafeHTML(questionDiv, html);
+                    previewContainer.appendChild(questionDiv);
+                });
+            }
+            
+            _renderReadOnlyView(q, index) {
+                const lang = q.metadata.language || this.customization.lang || 'ar';
+                const csvRow = this.csvData[index];
+                const questionIdText = (csvRow && csvRow['Question Id']) ? csvRow['Question Id'] : q.metadata.id;
+                let html = `<div class="question-actions">
+                    <button class="action-btn edit-btn" title="${this.language === this.Language.ARABIC ? 'تعديل' : 'Edit'}" aria-label="Edit">✏️</button>
+                    <button class="action-btn delete-btn" title="${this.language === this.Language.ARABIC ? 'حذف' : 'Delete'}" aria-label="Delete">🗑️</button>
+                </div>`;
+                if (q.statement) {
+                    html += `<div class="statement-preview">${this.processTextForHtml(q.statement, lang, q.metadata.id, -1, 'statement')}</div>`;
+                }
+                q.parts.forEach((p, pIndex) => {
+                    html += `<div class="part-preview">`;
+                    html += `<div class="question-type-badge type-${p.type}">${this.questionTypeConfigs[p.type]?.label || p.type} | ID: ${questionIdText}</div>`;
+                    html += `<div>${this.processTextForHtml(p.stem, lang, q.metadata.id, pIndex, 'stem')}</div>`;
+                    
+                    if (p.type === 'oq' || p.type === 'mcq' || p.type === 'mrq') {
+                        const correctAnswers = new Set(Array.isArray(p.answer) ? p.answer : [p.answer]);
+                        html += (p.choices || []).map((choice, cIndex) =>
+                            `<div class="choice-item ${correctAnswers.has(cIndex) ? 'correct' : ''}">${this.processTextForHtml(choice, lang, q.metadata.id, pIndex, 'choice', cIndex)}</div>`
+                        ).join('');
+                    } else if (p.type === 'matching') {
+                        let g1Html = (p.group1 || []).map((item, i) => `<div class="matching-item">${i+1}. ${this.processTextForHtml(item, lang, q.metadata.id, pIndex, 'group1', i)}</div>`).join('');
+                        let g2Html = (p.group2 || []).map((item, i) => `<div class="matching-item">${String.fromCharCode(65 + i)}. ${this.processTextForHtml(item, lang, q.metadata.id, pIndex, 'group2', i)}</div>`).join('');
+                        html += `<div class="matching-preview"><div class="matching-column"><strong>${this.language === this.Language.ARABIC ? 'القائمة أ' : 'List A'}</strong>${g1Html}</div><div class="matching-column"><strong>${this.language === this.Language.ARABIC ? 'القائمة ب' : 'List B'}</strong>${g2Html}</div></div>`;
+                    } else if (p.type === 'string' || p.type === 'frq' || p.type === 'frq_ai') {
+                        html += `<div class="choice-item correct"><strong>${this.language === this.Language.ARABIC ? 'الإجابة:' : 'Answer:'}</strong> ${this.processTextForHtml(p.answer, lang, q.metadata.id, pIndex, 'answer')}</div>`;
+                    } else if (p.type === 'gapText') {
+                        html += `<div class="gapped-text-answers"><strong>${this.language === this.Language.ARABIC ? 'الإجابات بالترتيب:' : 'Answers in order:'}</strong><ul>${(p.answers || []).map((ans, aIndex) => (ans && ans.value) ? `<li>${this.processTextForHtml(ans.value, lang, q.metadata.id, pIndex, 'gap', aIndex)}</li>` : '').join('')}</ul></div>`;
+                    } else if (p.type === 'input_box') {
+                        if (p.answer && typeof p.answer.value !== 'undefined') {
+                            html += `<div class="choice-item correct"><strong>${this.language === this.Language.ARABIC ? 'الإجابة:' : 'Answer:'}</strong> ${p.answer.value} ${p.answer.unit || ''}</div>`;
+                        }
+                    }
+                    html += `</div>`;
+                });
+                return html;
+            }
+            
+            _renderEditView(q) {
+                const contentToEdit = q._contentBlock || '';
+                let html = `<textarea class="edit-textarea" id="edit-q-text-${q.metadata.id}">${contentToEdit}</textarea>`;
+                html += `<div style="margin-top:10px;display:flex;gap:10px;">
+                    <button class="btn btn-success btn-save-edit">💾 ${this.language === this.Language.ARABIC ? 'حفظ' : 'Save'}</button>
+                    <button class="btn btn-secondary btn-cancel-edit">❌ ${this.language === this.Language.ARABIC ? 'إلغاء' : 'Cancel'}</button>
+                </div>`;
+                return html;
+            }
+            startEditQuestion(id) {
+                const qIndex = this.questions.findIndex(q => q.metadata.id === id);
+                if (qIndex > -1) { this.questions[qIndex]._editing = true; this.displayResults(); }
+            }
+            saveEditQuestion(id) {
+                const qIndex = this.questions.findIndex(q => q.metadata.id === id);
+                if (qIndex > -1) {
+                    const originalQuestion = this.questions[qIndex];
+                    const newContent = document.getElementById(`edit-q-text-${id}`).value;
+                    const newFullBlock = (originalQuestion._metaHeader || '') + newContent;
+                    const newQuestionObject = this._parseQuestionBlock(newFullBlock, qIndex);
+                    this.questions[qIndex] = newQuestionObject;
+                    this.updateUIAfterChange(this.language === this.Language.ARABIC ? 'تم حفظ التعديلات.' : 'Changes saved.');
+                }
+            }
+            cancelEditQuestion(id) {
+                const q = this.questions.find(q => q.metadata.id === id);
+                if (q) { q._editing = false; this.displayResults(); }
+            }
+            deleteQuestion(id) {
+                const qIndex = this.questions.findIndex(q => q.metadata.id === id);
+                if (qIndex > -1) {
+                    this.questions.splice(qIndex, 1);
+                    this.updateUIAfterChange(this.language === this.Language.ARABIC ? 'تم حذف السؤال.' : 'Question deleted.');
+                }
+            }
+            updateUIAfterChange(message) {
+                this.updateStatistics();
+                this.displayResults();
+                const jsonOutput = document.getElementById('jsonOutput');
+                if (jsonOutput.style.display === 'block') { this.convertToJSON(); }
+                document.getElementById('downloadZipBtn').disabled = this.questions.length === 0;
+                if (message) { this.showMessage(message, 'success'); }
+            }
+            updateStatistics() {
+                const total = this.questions.length;
+                let totalConfidence = 0;
+                this.questions.forEach(q => { totalConfidence += (q.metadata.confidence || 0.85); });
+                document.getElementById('totalQuestions').textContent = total;
+                const avgConfidence = total > 0 ? (totalConfidence / total) : 0;
+                const confidencePercent = Math.round(avgConfidence * 100);
+                document.getElementById('confidenceScore').textContent = `${confidencePercent}%`;
+                document.getElementById('detectionQuality').style.width = `${confidencePercent}%`;
+                document.getElementById('classificationAccuracy').style.width = `${Math.round(avgConfidence * 95)}%`;
+                document.getElementById('dataCompleteness').style.width = `${Math.round(avgConfidence * 90)}%`;
+            }
+            showMessage(text, type = 'success') {
+                const container = document.getElementById('messageContainer');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}`;
+                this.setSafeHTML(messageDiv, `<span class="close-x" aria-label="Close">×</span>${text}`);
+                messageDiv.querySelector('.close-x').onclick = () => messageDiv.remove();
+                container.appendChild(messageDiv);
+                setTimeout(() => { messageDiv.remove(); }, 4000);
+            }
+            async copyJSON() {
+                if (!this.jsonForExport) {
+                    this.showMessage(this.language === this.Language.ARABIC ? 'لا يوجد شيء لنسخه' : 'Nothing to copy', 'warning');
+                    return;
+                }
+                try {
+                    await navigator.clipboard.writeText(this.jsonForExport);
+                    this.showMessage(this.language === this.Language.ARABIC ? 'تم نسخ JSON إلى الحافظة' : 'JSON copied to clipboard', 'success');
+                } catch (err) {
+                    this.showMessage(this.language === this.Language.ARABIC ? 'فشل النسخ' : 'Copy failed', 'error');
+                }
+            }
+            downloadJSON() {
+                if (!this.jsonForExport || this.questions.length > 1) {
+                    this.showMessage(this.language === this.Language.ARABIC ? 'يمكن تحميل سؤال واحد فقط بصيغة JSON. استخدم ZIP للتحميل المجمع.' : 'Only one question can be downloaded as JSON. Use ZIP for bulk download.', 'warning');
+                    return;
+                }
+                const filename = `${this.questions[0].metadata.id}.json`;
+                const blob = new Blob([this.jsonForExport], { type: 'application/json' });
+                this.downloadBlob(blob, filename);
+                this.showMessage(this.language === this.Language.ARABIC ? 'بدء تحميل الملف...' : 'Download starting...', 'success');
+            }
+            async downloadZip() {
+                if (this.questions.length === 0) {
+                    this.showMessage(this.language === this.Language.ARABIC ? 'لا يوجد أسئلة لتحميلها' : 'No questions to download', 'warning');
+                    return;
+                }
+                const randomName = `QuestionsExport_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+                const jsonsZip = new JSZip();
+                this.questions.forEach((q, idx) => {
+                    const singleQuestionObject = this.transformToAdvancedFormat(q, idx);
+                    const filename = `${singleQuestionObject.metadata.id}.json`;
+                    const content = JSON.stringify(singleQuestionObject, null, 2);
+                    jsonsZip.file(filename, content);
+                });
+                const jsonsZipBlob = await jsonsZip.generateAsync({ type: 'blob' });
+                const mainZip = new JSZip();
+                mainZip.file('JSONS.zip', jsonsZipBlob);
+                mainZip.file('question_set_summary.csv', this.generateCSVContent());
+                const blob = await mainZip.generateAsync({ type: 'blob' });
+                this.downloadBlob(blob, `${randomName}.zip`);
+                this.showMessage(this.language === this.Language.ARABIC ? `تم تحميل ${randomName}.zip بنجاح` : `${randomName}.zip downloaded successfully`, 'success');
+            }
+            downloadBlob(blob, filename) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = filename;
+                document.body.appendChild(a); a.click();
+                document.body.removeChild(a); URL.revokeObjectURL(url);
+            }
+            toggleLanguage() {
+                this.language = this.language === this.Language.ARABIC ? this.Language.ENGLISH : this.Language.ARABIC;
+                this.updateInterfaceLanguage();
+                this.saveSettings();
+            }
+            updateInterfaceLanguage() {
+                const isAr = this.language === this.Language.ARABIC;
+                document.documentElement.lang = isAr ? 'ar' : 'en';
+                document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+                const translations = {
+                    mainTitle: { ar: '🚀 محول الأسئلة الذكي المتطور', en: '🚀 Advanced Smart Question Converter' },
+                    mainSubtitle: { ar: 'حوّل نصوص الأسئلة إلى صيغة JSON متقدمة بضغطة زر', en: 'Convert question texts to advanced JSON format with one click' },
+                    panelTitle1: { ar: '<span style="font-size: 1.5em; line-height: 1;">①</span> اختر نوع السؤال (للنص البسيط)', en: '<span style="font-size: 1.5em; line-height: 1;">①</span> Select Type (for Simple Text)' },
+                    panelTitle2: { ar: '<span style="font-size: 1.5em; line-height: 1;">②</span> أدخل النص', en: '<span style="font-size: 1.5em; line-height: 1;">②</span> Enter Text' },
+                    panelTitle3: { ar: '🔍 تحليل ومخرجات', en: '🔍 Analysis & Output' },
+                    panelTitle4: { ar: '👁️ معاينة الأسئلة', en: '👁️ Questions Preview' },
+                    analyzeBtn: { ar: '🤖 تحليل ذكي', en: '🤖 Smart Analyze' },
+                    enhanceBtn: { ar: '💎 تحسين بالـ AI', en: '💎 Enhance with AI' },
+                    convertBtn: { ar: '🔄 تحويل لـ JSON', en: '🔄 Convert to JSON' },
+                    customizeBtn: { ar: '⚙️ تخصيص', en: '⚙️ Customize' },
+                    clearBtn: { ar: '🗑️ مسح الكل', en: '🗑️ Clear All' },
+                    langBtn: { ar: '🌐 English', en: '🌐 العربية' },
+                    copyBtn: { ar: '📋 نسخ JSON', en: '📋 Copy JSON' },
+                    downloadBtn: { ar: '💾 تحميل', en: '💾 Download' },
+                    downloadZipBtn: { ar: '🗜️ تحميل كـ ZIP', en: '🗜️ Download as ZIP' },
+                    csvBtn: { ar: '📄 CSV', en: '📄 CSV' },
+                    subjectTemplateBtn: { ar: '📚 Subject Template ID', en: '📚 Subject Template ID' },
+                };
+                
+                document.getElementById('main-title').innerHTML = translations.mainTitle[this.language];
+                document.getElementById('main-subtitle').innerHTML = translations.mainSubtitle[this.language];
+                document.getElementById('panel-title-1').innerHTML = translations.panelTitle1[this.language];
+                document.getElementById('panel-title-2').innerHTML = translations.panelTitle2[this.language];
+                document.getElementById('panel-title-3').innerHTML = translations.panelTitle3[this.language];
+                document.getElementById('panel-title-4').innerHTML = translations.panelTitle4[this.language];
+                document.getElementById('smart-analyze-btn').innerHTML = translations.analyzeBtn[this.language];
+                document.getElementById('aiEnhanceBtn').innerHTML = translations.enhanceBtn[this.language];
+                document.getElementById('convert-json-btn').innerHTML = translations.convertBtn[this.language];
+                document.getElementById('customizeBtn').innerHTML = translations.customizeBtn[this.language];
+                document.getElementById('clear-all-btn').innerHTML = translations.clearBtn[this.language];
+                document.getElementById('langSwitchBtn').innerHTML = translations.langBtn[this.language];
+                document.getElementById('copyBtn').innerHTML = translations.copyBtn[this.language];
+                document.getElementById('downloadBtn').innerHTML = translations.downloadBtn[this.language];
+                document.getElementById('downloadZipBtn').innerHTML = translations.downloadZipBtn[this.language];
+                document.getElementById('csvBtn').innerHTML = translations.csvBtn[this.language];
+                document.getElementById('subjectTemplateBtn').innerHTML = translations.subjectTemplateBtn[this.language];
+                this.displayResults();
+            }
+            openCustomizeModal() {
+                const modal = document.getElementById('customizeModal');
+                modal.style.display = 'flex';
+                document.getElementById('categorySelect').value = this.customization.category;
+                document.getElementById('langSelect').value = this.customization.lang;
+                document.getElementById('countrySelect').value = this.customization.country;
+                document.getElementById('dialectSelect').value = this.customization.dialect;
+                setTimeout(() => { modal.querySelector('#categorySelect')?.focus(); }, 0);
+            }
+            closeCustomizeModal() { document.getElementById('customizeModal').style.display = 'none'; }
+            saveCustomization() {
+                this.customization.category = document.getElementById('categorySelect').value;
+                this.customization.lang = document.getElementById('langSelect').value;
+                this.customization.country = document.getElementById('countrySelect').value;
+                this.customization.dialect = document.getElementById('dialectSelect').value;
+                this.saveSettings(); this.closeCustomizeModal();
+                this.showMessage(this.language === this.Language.ARABIC ? 'تم حفظ الإعدادات' : 'Settings saved', 'success');
+                if (document.getElementById('jsonOutput').style.display === 'block') this.convertToJSON();
+            }
+            saveSettings() {
+                localStorage.setItem('aiq_settings', JSON.stringify({ language: this.language, customization: this.customization }));
+            }
+            loadSettings() {
+                try {
+                    const settings = JSON.parse(localStorage.getItem('aiq_settings'));
+                    if (settings) {
+                        if (settings.language) this.language = settings.language;
+                        if (settings.customization) this.customization = settings.customization;
+                    }
+                } catch {}
+            }
+            saveApiKey() { localStorage.setItem('aiq_api_key', document.getElementById('apiKey').value.trim()); }
+            loadApiKey() {
+                const apiKey = localStorage.getItem('aiq_api_key');
+                if (apiKey) { this.apiKey = apiKey; document.getElementById('apiKey').value = apiKey; }
+            }
+            openCSVModal() {
+                if (typeof Handsontable === 'undefined') { this.showMessage('Error: Table library not loaded.', 'error'); return; }
+                if (this.questions.length === 0) { this.showMessage(this.language === this.Language.ARABIC ? 'الرجاء تحليل الأسئلة أولاً.' : 'Please analyze questions first.', 'warning'); return; }
+                const columns = [
+                    { data: 'Question Id', type: 'text' },
+                    { data: 'Lang', type: 'text', readOnly: true },
+                    { data: 'Lesson Id', type: 'text' },
+                    { data: 'Attributes', type: 'text', readOnly: true },
+                    { data: 'Category', type: 'text', readOnly: true },
+                    { data: 'Dialect', type: 'text', readOnly: true }
+                ];
+                const saved = localStorage.getItem('aiq_csv_data');
+                let savedData = null;
+                try {
+                    savedData = JSON.parse(saved);
+                    if (!Array.isArray(savedData) || savedData.length !== this.questions.length) savedData = null;
+                } catch (e) { savedData = null; }
+                if (savedData) {
+                    this.csvData = savedData;
+                } else {
+                    this.csvData = this.questions.map((q) => ({
+                        'Question Id': q.metadata.id,
+                        'Lang': q.metadata.language || this.customization.lang,
+                        'Lesson Id': '',
+                        'Attributes': q.parts.map(p => this.questionTypeConfigs[p.type]?.jsonType || p.type).join(';'),
+                        'Category': q.metadata.category || this.customization.category,
+                        'Dialect': this.language === this.Language.ARABIC ? 'Modern_standard' : 'american, british'
+                    }));
+                }
+                document.getElementById('csvModalBg').style.display = 'flex';
+                if (this.hotInstance) this.hotInstance.destroy();
+                this.hotInstance = new Handsontable(document.getElementById('hotTable'), {
+                    data: this.csvData,
+                    colHeaders: ['Question Id', 'Lang', 'Lesson Id', 'Attributes', 'Category', 'Dialect'],
+                    columns: columns, rowHeaders: true, width: '100%', height: 500,
+                    licenseKey: 'non-commercial-and-evaluation', manualColumnResize: true, stretchH: 'all'
+                });
+            }
+            closeCSVModal() {
+                document.getElementById('csvModalBg').style.display = 'none';
+                if (this.hotInstance) { this.hotInstance.destroy(); this.hotInstance = null; }
+            }
+            saveCSVData() {
+                if (this.hotInstance) {
+                    const tableData = this.hotInstance.getData();
+                    this.csvData = tableData.map(row => ({
+                        'Question Id': row[0], 
+                        'Lang': row[1], 
+                        'Lesson Id': row[2], 
+                        'Attributes': row[3], 
+                        'Category': row[4], 
+                        'Dialect': row[5]
+                    }));
+                    localStorage.setItem('aiq_csv_data', JSON.stringify(this.csvData));
+                    this.showMessage(this.language === this.Language.ARABIC ? 'تم حفظ بيانات CSV' : 'CSV data saved successfully', 'success');
+                    this.closeCSVModal();
+                    this.displayResults();
+                }
+            }
+            openAiTemplateModal() {
+                if (typeof Handsontable === 'undefined') { this.showMessage('Error: Table library not loaded.', 'error'); return; }
+                if (this.questions.length === 0) { this.showMessage(this.language === this.Language.ARABIC ? 'الرجاء تحليل الأسئلة أولاً.' : 'Please analyze questions first.', 'warning'); return; }
+                
+                const columns = [
+                    { data: 'Question Id', type: 'text', readOnly: true },
+                    { data: 'AI Template ID', type: 'text' }
+                ];
+                
+                const data = this.questions.map(q => ({
+                    'Question Id': q.metadata.id,
+                    'AI Template ID': q.metadata.ai_template_id || ''
+                }));
+
+                document.getElementById('aiTemplateModalBg').style.display = 'flex';
+                if (this.aiTemplateHotInstance) this.aiTemplateHotInstance.destroy();
+                
+                this.aiTemplateHotInstance = new Handsontable(document.getElementById('hotAiTemplateTable'), {
+                    data: data,
+                    colHeaders: ['Question ID', 'AI Template ID'],
+                    columns: columns,
+                    rowHeaders: true,
+                    width: '100%',
+                    height: 500,
+                    licenseKey: 'non-commercial-and-evaluation',
+                    manualColumnResize: true,
+                    stretchH: 'all'
+                });
+            }
+            closeAiTemplateModal() {
+                document.getElementById('aiTemplateModalBg').style.display = 'none';
+                if (this.aiTemplateHotInstance) {
+                    this.aiTemplateHotInstance.destroy();
+                    this.aiTemplateHotInstance = null;
+                }
+            }
+            saveAiTemplateData() {
+                if (this.aiTemplateHotInstance) {
+                    const tableData = this.aiTemplateHotInstance.getData();
+                    tableData.forEach((row) => {
+                        const originalId = row[0];
+                        const aiTemplateId = row[1];
+                        const question = this.questions.find(q => q.metadata.id === originalId);
+                        if (question) {
+                            question.metadata.ai_template_id = aiTemplateId || null;
+                            question.parts.forEach(p => {
+                                p.metadata.ai_template_id = aiTemplateId || null;
+                            });
+                        }
+                    });
+                    this.showMessage(this.language === this.Language.ARABIC ? 'تم حفظ معرفات قوالب AI بنجاح' : 'AI Template IDs saved successfully', 'success');
+                    this.closeAiTemplateModal();
+                    if (document.getElementById('jsonOutput').style.display === 'block') {
+                        this.convertToJSON();
+                    }
+                }
+            }
+            _formatCsvCell(value) {
+                if (value === null || value === undefined) {
+                    return '';
+                }
+                let stringValue = String(value);
+                if (/[",\n]/.test(stringValue)) {
+                    stringValue = stringValue.replace(/"/g, '""');
+                    return `"${stringValue}"`;
+                }
+                return stringValue;
+            }
+            generateCSVContent() {
+                const header = ['Question Id', 'Lang', 'Lesson Id', 'Attributes', 'Category', 'Dialect'];
+                if (this.csvData && this.csvData.length === this.questions.length) {
+                    return this.getCSVString();
+                }
+                const csvRowsData = this.questions.map((q, idx) => {
+                    const transformedQ = this.transformToAdvancedFormat(q, idx);
+                    const firstType = q.parts && q.parts.length > 0 ? (this.questionTypeConfigs[q.parts[0].type]?.jsonType || q.parts[0].type) : "";
+                    return [
+                        transformedQ.metadata.id,
+                        transformedQ.metadata.language,
+                        '', 
+                        firstType,
+                        transformedQ.metadata.category,
+                        Array.isArray(transformedQ.metadata.dialect) ? transformedQ.metadata.dialect.join(', ') : transformedQ.metadata.dialect
+                    ];
+                });
+
+                const rows = csvRowsData.map(rowData =>
+                    rowData.map(cell => this._formatCsvCell(cell)).join(',')
+                );
+
+                return header.join(',') + '\n' + rows.join('\n');
+            }
+            getCSVString() {
+                const header = ['Question Id', 'Lang', 'Lesson Id', 'Attributes', 'Category', 'Dialect'];
+                const rows = this.csvData.map(row => {
+                    return header.map(col => this._formatCsvCell(row[col])).join(',');
+                });
+                return header.join(',') + '\n' + rows.join('\n');
+            }
+            
+            // Subject Template ID Functions
+            openSubjectTemplateModal() {
+                if (this.questions.length === 0) {
+                    this.showMessage(this.language === this.Language.ARABIC ? 'الرجاء تحليل الأسئلة أولاً.' : 'Please analyze questions first.', 'warning');
+                    return;
+                }
+                
+                document.getElementById('subjectTemplateModalBg').style.display = 'flex';
+                document.getElementById('subjectSelect').value = '';
+                this.updateSubjectQuestionsPreview();
+            }
+            
+            closeSubjectTemplateModal() {
+                document.getElementById('subjectTemplateModalBg').style.display = 'none';
+            }
+            
+            updateSubjectQuestionsPreview() {
+                const selectedSubject = document.getElementById('subjectSelect').value;
+                const previewContainer = document.getElementById('subjectQuestionsPreview');
+                
+                if (!selectedSubject) {
+                    this.setSafeHTML(previewContainer, '<p style="text-align:center; color:#6b7280;">ستظهر الأسئلة المؤهلة هنا بعد اختيار المادة</p>');
+                    return;
+                }
+                
+                const templateId = this.subjectTemplateMap[selectedSubject];
+                if (!templateId) {
+                    this.setSafeHTML(previewContainer, '<p style="text-align:center; color:#ef4444;">خطأ: لم يتم العثور على Template ID لهذه المادة</p>');
+                    return;
+                }
+                
+                const eligibleQuestions = this.questions.filter((q, index) => {
+                    return q.parts.some(part => 
+                        part.type === this.QuestionType.FRQ_AI || 
+                        part.type === this.QuestionType.STRING
+                    );
+                });
+                
+                if (eligibleQuestions.length === 0) {
+                    this.setSafeHTML(previewContainer, '<p style="text-align:center; color:#f59e0b;">لا توجد أسئلة من نوع frq_ai أو string لتطبيق Template ID عليها</p>');
+                    return;
+                }
+                
+                let html = `<div style="margin-bottom:15px; padding:10px; background:#dcfce7; border-radius:8px; border:1px solid #16a34a;">
+                    <strong>المادة المختارة:</strong> ${selectedSubject}<br>
+                    <strong>Template ID:</strong> ${templateId}<br>
+                    <strong>عدد الأسئلة المؤهلة:</strong> ${eligibleQuestions.length}
+                </div>`;
+                
+                html += '<div style="max-height:200px; overflow-y:auto;">';
+                eligibleQuestions.forEach((q, index) => {
+                    const questionId = q.metadata.id;
+                    const parts = q.parts.filter(part => 
+                        part.type === this.QuestionType.FRQ_AI || 
+                        part.type === this.QuestionType.STRING
+                    );
+                    
+                    html += `<div style="margin-bottom:10px; padding:8px; background:white; border-radius:6px; border:1px solid #e2e8f0;">
+                        <strong>السؤال ${index + 1} (ID: ${questionId})</strong><br>
+                        <small>الأجزاء المؤهلة: ${parts.map(p => p.type).join(', ')}</small>
+                    </div>`;
+                });
+                html += '</div>';
+                
+                this.setSafeHTML(previewContainer, html);
+            }
+            
+            saveSubjectTemplateData() {
+                const selectedSubject = document.getElementById('subjectSelect').value;
+                
+                if (!selectedSubject) {
+                    this.showMessage(this.language === this.Language.ARABIC ? 'الرجاء اختيار مادة أولاً' : 'Please select a subject first', 'warning');
+                    return;
+                }
+                
+                const templateId = this.subjectTemplateMap[selectedSubject];
+                if (!templateId) {
+                    this.showMessage(this.language === this.Language.ARABIC ? 'خطأ: لم يتم العثور على Template ID لهذه المادة' : 'Error: Template ID not found for this subject', 'error');
+                    return;
+                }
+                
+                let appliedCount = 0;
+                
+                this.questions.forEach(q => {
+                    q.parts.forEach(part => {
+                        if (part.type === this.QuestionType.FRQ_AI || part.type === this.QuestionType.STRING) {
+                            part.metadata.ai_template_id = templateId;
+                            appliedCount++;
+                        }
+                    });
+                    
+                    if (q.parts.some(part => part.type === this.QuestionType.FRQ_AI || part.type === this.QuestionType.STRING)) {
+                        q.metadata.ai_template_id = templateId;
+                    }
+                });
+                
+                this.showMessage(
+                    this.language === this.Language.ARABIC 
+                        ? `تم تطبيق Template ID (${templateId}) على ${appliedCount} جزء من الأسئلة` 
+                        : `Applied Template ID (${templateId}) to ${appliedCount} question parts`, 
+                    'success'
+                );
+                
+                this.closeSubjectTemplateModal();
+                
+                if (document.getElementById('jsonOutput').style.display === 'block') {
+                    this.convertToJSON();
+                }
+                
+                this.displayResults();
+            }
+            
+            syntaxHighlight(json) {
+                json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                return json.replace(
+                    /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+                    (match) => {
+                        let cls = 'number';
+                        if (/^"/.test(match)) {
+                            cls = /:$/.test(match) ? 'key' : 'string';
+                        } else if (/true|false/.test(match)) {
+                            cls = 'boolean';
+                        } else if (/null/.test(match)) {
+                            cls = 'null';
+                        }
+                        return '<span class="' + cls + '">' + match + '</span>';
+                    }
+                );
+            }
+        }
+        const app = new AIQuestionConverter();
+    });
+    </script>
+</body>
+</html>
